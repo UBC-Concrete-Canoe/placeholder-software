@@ -4,6 +4,7 @@
 #include <AIS_InteractiveContext.hxx>
 #include <AIS_Polyline.hxx>
 #include <Standard_Handle.hxx>
+#include <TColgp_Array1OfPnt.hxx>
 
 //not sure if we need these
 #include <vector>
@@ -23,7 +24,7 @@ class HullModel; //to avoid dependancy
 
 class IHullModelObserver {
     public:
-        virtual ~IHulModelObserver() = default;
+        virtual ~IHullModelObserver() = default;
 
         virtual void onControlPointMoved(int uIndex, int vIndex) = 0; //called when the hull model is updated
 };
@@ -47,8 +48,10 @@ class WireframeManager : public IHullModelObserver {
         std::shared_ptr<HullModel> m_hullModel; //reference to the hull model for accessing control points and hull lines
 
         //occt object storage
-        std::vector<Handle(AIS_Polyline)> m_controlPointLines; //AIS_Polyline objects representing control point connections
-        std::vector<Handle(AIS_Polyline)> m_hullLines; //AIS_Polyline objects representing hull lines
+        std::vector<Handle(AIS_Polyline)> m_uRowLines; //AIS_Polyline objects representing U rows of control points
+        std::vector<Handle(AIS_Polyline)> m_vRowLines; //AIS_Polyline objects representing V rows of control points
+
+        bool m_isVisible = true;
 
 };
 
