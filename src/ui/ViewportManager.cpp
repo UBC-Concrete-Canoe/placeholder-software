@@ -23,6 +23,11 @@ void ViewportManager::initializeViewport(MainWindow* window) {
 	OcctWidget* profile_widget = window->findChild<OcctWidget*>("profileWidget");
 	OcctWidget* bodyplan_widget = window->findChild<OcctWidget*>("bodyplanWidget");
 
+	//Change perspective view from OCCT's default Orthographic to Perspective
+	//NOTE: Having issues setting this up. 
+	Handle(V3d_View) int_persp_view = persp_viewport->getView();
+	int_persp_view->Camera()->SetProjectionType(Graphic3d_Camera::Projection_Perspective);
+
     // Ensure Qt creates a native handle; required for OCCT embedding
 	(void)persp_widget->winId();
 	(void)plan_widget->winId();

@@ -17,8 +17,15 @@ ViewportController::onResize()
 void
 ViewportController::onMousePressEvent(QMouseEvent* e)
 {
+	Handle(V3d_View) int_view = m_viewport->getView();
+	bool isRot = (e->buttons() & Qt::LeftButton);
+	bool isTran = (e->buttons() & Qt::MiddleButton);
+
 	if (!m_viewport || !m_viewport->getView())
 	{
+		return;
+	}
+	else if (int_view->Camera()->IsOrthographic() && (isRot || isTran)) {
 		return;
 	}
 
