@@ -105,7 +105,7 @@ public:
 	Handle(V3d_View) getView() { return myView; }
 
 private:
-	void setupView(WId windowHandle, Handle(WNT_Window) wind);
+	void setupView(WId windowHandle);
 	Handle(V3d_Viewer) myViewer;
 	Handle(V3d_View) myView;
 	Handle(AIS_InteractiveContext) myContext;

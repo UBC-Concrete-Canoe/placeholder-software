@@ -44,18 +44,7 @@ OcctViewport::initialize(WId windowHandle)
 
 	myView = myViewer->CreateView();
 
-	// Embed the view into the Qt widget's native window handle
-	#ifdef _WIN32
-		Handle(WNT_Window) wind = new WNT_Window((Aspect_Handle)windowHandle);
-	#elif defined(Q_OS_LINUX)
-		Handle(Xw_Window) wind = new Xw_Window(displayConnection, (Aspect_Drawable)windowHandle);
-	#elif defined(Q_OS_MAC)
-		Handle(Cocoa_Window) wind = new Cocoa_Window((NSView*)windowHandle);
-	#else
-		Handle(Xw_Window) wind = new Xw_Window(displayConnection, (Aspect_Drawable)windowHandle);
-	#endif
-
-	setupView(windowHandle, wind); //Embed into Qt's window handle
+	setupView(windowHandle); //Embed into Qt's window handle
 }
 
 //Initialize 2: Create the planar renders
@@ -66,28 +55,27 @@ OcctViewport::initialize(WId windowHandle, Handle(AIS_InteractiveContext) shared
 	myViewer = myContext->CurrentViewer();
 	myView = myViewer->CreateView();
 
-	// Embed the view into the Qt widget's native window handle
-	#ifdef _WIN32
-		Handle(WNT_Window) wind = new WNT_Window((Aspect_Handle)windowHandle);
-	#elif defined(Q_OS_LINUX)
-		Handle(Xw_Window) wind = new Xw_Window(displayConnection, (Aspect_Drawable)windowHandle);
-	#elif defined(Q_OS_MAC)
-		Handle(Cocoa_Window) wind = new Cocoa_Window((NSView*)windowHandle);
-	#else
-		Handle(Xw_Window) wind = new Xw_Window(displayConnection, (Aspect_Drawable)windowHandle);
-	#endif
-
-	setupView(windowHandle, wind); //Embed into Qt's window handle
-
+	setupView(windowHandle); //Embed into Qt's window handle
 }
 
 //Embed into Qt's window handle, placed here to reduce clutter
 void
-OcctViewport::setupView(WId windowHandle, Handle(WNT_Window) wind)
+OcctViewport::setupView(WId windowHandle)
 {
 	myView->SetImmediateUpdate(false);
 	myView->SetShadingModel(V3d_PHONG);
 	myView->SetBackgroundColor(Quantity_NOC_BLACK);
+
+	// Embed the view into the Qt widget's native window handle
+	#ifdef _WIN32
+		Handle(WNT_Window) wind = new WNT_Window((Aspect_Handle)windowHandle);
+	#elif defined(Q_OS_MAC)
+		Handle(Cocoa_Window) wind = new Cocoa_Window((NSView*)windowHandle);
+	#else
+		// Display connection can be found from the graphic driver
+		Handle(Aspect_DisplayConnection) displayConnection = myViewer->Driver()->GetDisplayConnection();
+		Handle(Xw_Window) wind = new Xw_Window(displayConnection, (Aspect_Drawable)windowHandle);
+	#endif
 
 	myView->SetWindow(wind);
 	if (!wind->IsMapped())
