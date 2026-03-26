@@ -16,17 +16,12 @@ ViewportManager::ViewportManager() {
 	bodyplan_controller = std::make_unique<ViewportController>(bodyplan_viewport.get());
 }
 
-void ViewportManager::initializeViewport(MainWindow* window) {
+void ViewportManager::initializeViewport(MainWindow* window) { 
     //Locate the widgets from Qt
     OcctWidget* persp_widget = window->findChild<OcctWidget*>("renderWidget"); //This must change if the promoted widget in Qt changes name.
 	OcctWidget* plan_widget = window->findChild<OcctWidget*>("planWidget");
 	OcctWidget* profile_widget = window->findChild<OcctWidget*>("profileWidget");
 	OcctWidget* bodyplan_widget = window->findChild<OcctWidget*>("bodyplanWidget");
-
-	//Change perspective view from OCCT's default Orthographic to Perspective
-	//NOTE: Having issues setting this up. 
-	Handle(V3d_View) int_persp_view = persp_viewport->getView();
-	int_persp_view->Camera()->SetProjectionType(Graphic3d_Camera::Projection_Perspective);
 
     // Ensure Qt creates a native handle; required for OCCT embedding
 	(void)persp_widget->winId();
@@ -45,6 +40,11 @@ void ViewportManager::initializeViewport(MainWindow* window) {
 
 	//Obtain context so that the other three viewing planes can be dependent on the main 3D view
 	Handle(AIS_InteractiveContext) sharedCtx = persp_viewport->getContext();
+
+	//Change perspective view from OCCT's default Orthographic to Perspective
+	//NOTE: Having issues setting this up. 
+	Handle(V3d_View) int_persp_view = persp_viewport->getView();
+	int_persp_view->Camera()->SetProjectionType(Graphic3d_Camera::Projection_Perspective);
 
 	//Initialize three planar views based on main 3D view
 	plan_viewport->initialize(plan_widget->winId(), sharedCtx);

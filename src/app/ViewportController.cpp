@@ -19,13 +19,13 @@ ViewportController::onMousePressEvent(QMouseEvent* e)
 {
 	Handle(V3d_View) int_view = m_viewport->getView();
 	bool isRot = (e->buttons() & Qt::LeftButton);
-	bool isTran = (e->buttons() & Qt::MiddleButton);
+	bool isTran = (e->buttons() & Qt::MiddleButton); //Remove this line to enable panning
 
 	if (!m_viewport || !m_viewport->getView())
 	{
 		return;
 	}
-	else if (int_view->Camera()->IsOrthographic() && (isRot || isTran)) {
+	else if (int_view->Camera()->IsOrthographic() && (isRot || isTran)) { //Remove "isTran" to enable panning
 		return;
 	}
 
