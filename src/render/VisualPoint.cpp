@@ -99,7 +99,7 @@ VisualPoint::pointFromModel() const
 		return gp_Pnt(0.0, 0.0, 0.0);
 	}
 
-	return gp_Pnt(m_controlPoint->x, m_controlPoint->y, m_controlPoint->z);
+	return m_controlPoint->getPosition();
 }
 
 bool
