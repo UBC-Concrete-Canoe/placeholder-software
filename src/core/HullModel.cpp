@@ -93,27 +93,27 @@ HullModel::getIndex(int u, int v) const
 std::size_t
 HullModel::pointCount() const
 {
-	return points.size();
+	return m_points.size();
 }
 
 ControlPoint*
 HullModel::pointAt(std::size_t index)
 {
-	if (index >= points.size())
+	if (index >= m_points.size())
 	{
 		return nullptr;
 	}
 
-	return &points[index];
+	return &m_points[index];
 }
 
 const ControlPoint*
 HullModel::pointAt(std::size_t index) const
 {
-	if (index >= points.size())
+	if (index >= m_points.size())
 	{
 		return nullptr;
 	}
 
-	return &points[index];
+	return &m_points[index];
 }
