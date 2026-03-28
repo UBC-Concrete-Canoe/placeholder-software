@@ -7,8 +7,11 @@
 #include "render/OcctViewport.h"
 #include "ui/MainWindow.h"
 #include "ui/OcctWidget.h"
-// OCCT helper for creating a test box
-#include <BRepPrimAPI_MakeBox.hxx>
+
+//for testing
+#include "core/HullModel.h"
+#include "render/WireframeManager.h"
+#include <memory>
 
 Application::Application() = default;
 
@@ -35,9 +38,31 @@ Application::run()
 	// Initialize OCCT within the widget's native window
 	initializeGraphics(occt_widget, occt_viewport);
 
-	// Create and display a demo object
-	TopoDS_Shape box = BRepPrimAPI_MakeBox(10.0, 10.0, 20.0).Shape();
-	occt_viewport->displayShape(box);
+	// --- NEW WIREFRAME TEST CODE ---
+
+	// 1. Create a 4x4 test grid
+	std::shared_ptr<HullModel> testModel = std::make_shared<HullModel>(4, 4);
+
+	// 2. Spread the points out into a visible 3D grid
+	int currentId = 0;
+	for (int u = 0; u < 4; ++u) {
+		for (int v = 0; v < 4; ++v) {
+			// Create a gentle curve by raising the Z height of the middle points
+			double zHeight = (u > 0 && u < 3 && v > 0 && v < 3) ? 10.0 : 0.0;
+			testModel->updatePoint(currentId, gp_Pnt(u * 30.00, v *30.0, zHeight));
+			currentId++;
+		}
+	}
+
+	// 3. Create the manager to draw the grid
+	WireframeManager* testManager = new WireframeManager(occt_viewport->getContext(), testModel);
+
+	// 4. Build the initial lattice
+	testManager->BuildLattice();
+
+	// 5. Tell the viewport to zoom to our new wireframe
+	occt_viewport->fitAll();
+	
 }
 
 void
