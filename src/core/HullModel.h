@@ -62,25 +62,19 @@ public:
 	/** @brief Get the lattice size along V. */
 	int getVCount() const { return m_vCount; }
 
-	/**
-	 * @brief Get number of stored control points.
-	 * @return Count of points in the model.
-	 */
-	std::size_t pointCount() const;
-
-	/**
-	 * @brief Access a control point by index.
-	 * @param index Zero-based point index.
-	 * @return Non-owning pointer to point, or nullptr if out of range.
-	 */
-	ControlPoint* pointAt(std::size_t index);
-
-	/**
-	 * @brief Access a control point by index (const overload).
-	 * @param index Zero-based point index.
-	 * @return Non-owning const pointer to point, or nullptr if out of range.
-	 */
-	const ControlPoint* pointAt(std::size_t index) const;
+    /**
+     * @brief Reverse-lookup the lattice coordinates of a ControlPoint by pointer.
+     *
+     * Used by MoveTool to map a picked VisualPoint back to its (u, v) position
+     * in the lattice so dependent systems (e.g. WireframeManager) can be notified
+     * of the change.
+     *
+     * @param ptr Pointer to the ControlPoint to search for.
+     * @param u   Output: zero-based U index if found.
+     * @param v   Output: zero-based V index if found.
+     * @return    True if the pointer belongs to this model, false otherwise.
+     */
+    bool findUV(const ControlPoint* ptr, int& u, int& v) const;
 
 private:
 	/**

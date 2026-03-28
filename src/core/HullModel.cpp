@@ -89,31 +89,3 @@ HullModel::getIndex(int u, int v) const
 
 	return (u * m_vCount) + v;
 }
-
-std::size_t
-HullModel::pointCount() const
-{
-	return m_points.size();
-}
-
-ControlPoint*
-HullModel::pointAt(std::size_t index)
-{
-	if (index >= m_points.size())
-	{
-		return nullptr;
-	}
-
-	return &m_points[index];
-}
-
-const ControlPoint*
-HullModel::pointAt(std::size_t index) const
-{
-	if (index >= m_points.size())
-	{
-		return nullptr;
-	}
-
-	return &m_points[index];
-}
