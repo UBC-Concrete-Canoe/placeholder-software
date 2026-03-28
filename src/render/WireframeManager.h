@@ -2,7 +2,7 @@
 
 //OCCT
 #include <AIS_InteractiveContext.hxx>
-#include <AIS_Polyline.hxx>
+#include <AIS_Shape.hxx>
 #include <Standard_Handle.hxx>
 #include <TColgp_Array1OfPnt.hxx>
 
@@ -48,8 +48,8 @@ class WireframeManager : public IHullModelObserver {
         std::shared_ptr<HullModel> m_hullModel; //reference to the hull model for accessing control points and hull lines
 
         //occt object storage
-        std::vector<Handle(AIS_Polyline)> m_uRowLines; //AIS_Polyline objects representing U rows of control points
-        std::vector<Handle(AIS_Polyline)> m_vRowLines; //AIS_Polyline objects representing V rows of control points
+        std::vector<Handle(AIS_Shape)> m_uRowLines; //AIS_Polyline objects representing U rows of control points
+        std::vector<Handle(AIS_Shape)> m_vRowLines; //AIS_Polyline objects representing V rows of control points
 
         bool m_isVisible = true;
 

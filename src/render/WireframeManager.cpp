@@ -1,9 +1,12 @@
 
 #include "WireframeManager.h"
-#include "HullModel.h"
+#include "core/HullModel.h"
 #include <AIS_InteractiveContext.hxx>
-#include <AIS_Polyline.hxx>
-#include <TColgp_Array1OfPnt.hxx>
+#include <AIS_Shape.hxx>
+
+// NEW: Required to build a continuous wireframe line out of points
+#include <BRepBuilderAPI_MakePolygon.hxx>
+
 
 WireframeManager::WireframeManager(const Handle(AIS_InteractiveContext)& context, const std::shared_ptr<HullModel>& hullModel)
     : m_context(context), m_hullModel(hullModel)
@@ -33,8 +36,8 @@ void WireframeManager::BuildLattice()
     int vCount = m_hullModel->getVCount();
 
     // Size the vectors to match the grid
-    m_uRowLines.assign(uCount, Handle(AIS_Polyline)());
-    m_vRowLines.assign(vCount, Handle(AIS_Polyline)());
+    m_uRowLines.assign(uCount, Handle(AIS_Shape)());
+    m_vRowLines.assign(vCount, Handle(AIS_Shape)());
 
     // Generate the initial grid
     for (int u = 0; u < uCount; ++u) UpdateURowPolylines(u);
@@ -51,43 +54,46 @@ void WireframeManager::onControlPointMoved(int uIndex, int vIndex)
 
 void WireframeManager::UpdateURowPolylines(int uIndex)
 {
-    // TODO: Update AIS_Polyline objects for U row at uIndex
-
-   int vCount = m_hullModel->getVCount(); // Updated getter
+    int vCount = m_hullModel->getVCount(); 
     if (vCount < 2) return; 
 
-    TColgp_Array1OfPnt points(1, vCount);
+    // 1. Build a Polygon Wire from the grid points
+    BRepBuilderAPI_MakePolygon polyMaker;
     for (int v = 0; v < vCount; ++v) {
-        // UPDATED: Fetch the ControlPoint, then extract the gp_Pnt
-        points.SetValue(v + 1, m_hullModel->getPoint(uIndex, v).getPosition());
+        polyMaker.Add(m_hullModel->getPoint(uIndex, v).getPosition());
     }
+    polyMaker.Build();
 
+    // 2. Display or Update the AIS_Shape
     if (m_uRowLines[uIndex].IsNull()) {
-        m_uRowLines[uIndex] = new AIS_Polyline(points);
+        m_uRowLines[uIndex] = new AIS_Shape(polyMaker.Shape());
         if (m_isVisible) m_context->Display(m_uRowLines[uIndex], Standard_False);
     } else {
-        m_uRowLines[uIndex]->SetPoints(points);
+        // PERFORMANCE REQUIREMENT MET: Update existing geometry without deleting
+        // Note: If m_uRowLines[uIndex]->Set() throws an error in your specific 
+        // OCCT version, change it to m_uRowLines[uIndex]->SetShape()
+        m_uRowLines[uIndex]->SetShape(polyMaker.Shape()); 
         m_context->Redisplay(m_uRowLines[uIndex], Standard_False);
     }
 }
 
 void WireframeManager::UpdateVRowPolylines(int vIndex)
 {
-    // TODO: Update AIS_Polyline objects for V row at vIndex
-
-    int uCount = m_hullModel->getUCount();
+   int uCount = m_hullModel->getUCount();
     if (uCount < 2) return; 
 
-    TColgp_Array1OfPnt points(1, uCount);
+    BRepBuilderAPI_MakePolygon polyMaker;
     for (int u = 0; u < uCount; ++u) {
-        points.SetValue(u + 1, m_hullModel->getPoint(u, vIndex).getPosition());
+        polyMaker.Add(m_hullModel->getPoint(u, vIndex).getPosition());
+    }
+    polyMaker.Build();
+
+    if (m_vRowLines[vIndex].IsNull()) {
+        m_vRowLines[vIndex] = new AIS_Shape(polyMaker.Shape());
+        if (m_isVisible) m_context->Display(m_vRowLines[vIndex], Standard_False);
+    } else {
+        m_vRowLines[vIndex]->SetShape(polyMaker.Shape()); 
+        m_context->Redisplay(m_vRowLines[vIndex], Standard_False);
     }
 
-    if (m_vColLines[vIndex].IsNull()) {
-        m_vColLines[vIndex] = new AIS_Polyline(points);
-        m_context->Display(m_vColLines[vIndex], Standard_False);
-    } else {
-        m_vColLines[vIndex]->SetPoints(points);
-        m_context->Redisplay(m_vColLines[vIndex], Standard_False);
-    }
 }
