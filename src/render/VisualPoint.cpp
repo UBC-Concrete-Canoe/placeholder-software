@@ -14,9 +14,9 @@ IMPLEMENT_STANDARD_RTTIEXT(VisualPoint, AIS_InteractiveObject)
 namespace
 {
 constexpr Standard_Real kSyncEpsilon = 1.0e-7;
-constexpr Standard_Real kDefaultMarkerScale = 6.0;
-constexpr Standard_Real kSelectedMarkerScale = 8.0;
-}
+constexpr Standard_Real kDefaultMarkerScale = 30.0;
+constexpr Standard_Real kSelectedMarkerScale = 40.0;
+} // namespace
 
 VisualPoint::VisualPoint(const ControlPoint* controlPoint)
   : m_controlPoint(controlPoint)
@@ -55,9 +55,11 @@ VisualPoint::setSelectedStyle(bool selected)
 }
 
 void
-VisualPoint::Compute(const Handle(PrsMgr_PresentationManager)&,
-                     const Handle(Prs3d_Presentation)& thePrs,
-                     const Standard_Integer theMode)
+VisualPoint::Compute(
+	const Handle(PrsMgr_PresentationManager) &,
+	const Handle(Prs3d_Presentation) & thePrs,
+	const Standard_Integer theMode
+)
 {
 	thePrs->Clear();
 
@@ -82,8 +84,10 @@ VisualPoint::Compute(const Handle(PrsMgr_PresentationManager)&,
 }
 
 void
-VisualPoint::ComputeSelection(const Handle(SelectMgr_Selection)& theSelection,
-                              const Standard_Integer)
+VisualPoint::ComputeSelection(
+	const Handle(SelectMgr_Selection) & theSelection,
+	const Standard_Integer
+)
 {
 	Handle(SelectMgr_EntityOwner) owner = new SelectMgr_EntityOwner(this, 10);
 	Handle(Select3D_SensitivePoint) sensitivePoint =

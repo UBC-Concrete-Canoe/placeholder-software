@@ -41,7 +41,7 @@ Application::run()
 
 	// Create and display a demo object
 	TopoDS_Shape box = BRepPrimAPI_MakeBox(10.0, 10.0, 20.0).Shape();
-	occt_viewport->displayShape(box);
+	// occt_viewport->displayShape(box);
 
 	// Create and display a demo control point for OCCT point selection.
 	m_hullModel.updatePoint(0, gp_Pnt(11.0, 5.0, 10.0));
