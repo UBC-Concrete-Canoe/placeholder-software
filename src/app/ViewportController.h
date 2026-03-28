@@ -60,5 +60,9 @@ public:
 	void onResize();
 
 private:
+	void synchronizeAndFlush();
+	bool m_leftButtonPressed = false;
+	bool m_leftButtonDragged = false;
+	Graphic3d_Vec2i m_leftPressPos = Graphic3d_Vec2i(0, 0);
 	OcctViewport* m_viewport;
 };

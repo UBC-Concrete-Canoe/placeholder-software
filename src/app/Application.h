@@ -1,4 +1,5 @@
 #pragma once
+#include "core/HullModel.h"
 #include "render/OcctViewport.h"
 #include "ui/OcctWidget.h"
 
@@ -31,4 +32,6 @@ private:
 	 * @param viewport The OcctViewport to initialize
 	 */
 	void initializeGraphics(OcctWidget* widget, OcctViewport* viewport);
+
+	HullModel m_hullModel;
 };

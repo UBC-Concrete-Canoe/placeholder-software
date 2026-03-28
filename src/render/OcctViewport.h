@@ -6,6 +6,10 @@
 #include <TopoDS_Shape.hxx>
 #include <V3d_View.hxx>
 #include <V3d_Viewer.hxx>
+#include <vector>
+
+class ControlPoint;
+class VisualPoint;
 
 /**
  * @brief The rendering engine layer for OpenCascade viewport.
@@ -44,6 +48,20 @@ public:
 	 * @param shape The geometry to display (TopoDS_Shape)
 	 */
 	void displayShape(const TopoDS_Shape& shape);
+
+	/**
+	 * @brief Display a selectable visual marker for a model control point.
+	 * @param point Non-owning pointer to model control point data.
+	 */
+	void displayControlPoint(const ControlPoint* point);
+
+	/**
+	 * @brief Synchronize all displayed visual points with their model state.
+	 *
+	 * Calls each point's synchronize() and updates presentation/selection style
+	 * if needed without recreating AIS objects.
+	 */
+	void synchronizeVisualPoints();
 
 	/**
 	 * @brief Clear all displayed objects from the viewport.
@@ -90,9 +108,15 @@ public:
 	Handle(V3d_View) getView() { return myView; }
 
 private:
+	/**
+	 * @brief Apply selected/unselected style to tracked visual points.
+	 * @return True if any point style changed.
+	 */
+	bool updateVisualPointSelectionStyles();
 	Handle(V3d_Viewer) myViewer;
 	Handle(V3d_View) myView;
 	Handle(AIS_InteractiveContext) myContext;
+	std::vector<Handle(VisualPoint)> myVisualPoints;
 };
 
 #endif // OCCTVIEWPORT_H

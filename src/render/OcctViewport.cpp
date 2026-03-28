@@ -1,4 +1,6 @@
 #include "OcctViewport.h"
+#include "core/ControlPoint.h"
+#include "render/VisualPoint.h"
 
 // OCCT Core
 #include <AIS_Shape.hxx>
@@ -40,6 +42,7 @@ OcctViewport::initialize(WId windowHandle)
 	// Create the interactive context for rendering objects
 	myContext = new AIS_InteractiveContext(myViewer);
 	myContext->DefaultDrawer()->SetFaceBoundaryDraw(true);
+	myContext->SetPixelTolerance(8);
 
 	// Create the view
 	myView = myViewer->CreateView();
@@ -74,11 +77,28 @@ OcctViewport::displayShape(const TopoDS_Shape& shape)
 }
 
 void
+OcctViewport::displayControlPoint(const ControlPoint* point)
+{
+	if (myContext.IsNull() || point == nullptr)
+	{
+		return;
+	}
+
+	Handle(VisualPoint) visualPoint = new VisualPoint(point);
+	myContext->Display(visualPoint, Standard_False);
+	myContext->Activate(visualPoint, 0, Standard_False);
+	myVisualPoints.push_back(visualPoint);
+	myView->FitAll();
+	myContext->UpdateCurrentViewer();
+}
+
+void
 OcctViewport::removeAll()
 {
 	if (!myContext.IsNull())
 	{
 		myContext->RemoveAll(true);
+		myVisualPoints.clear();
 	}
 }
 
@@ -143,4 +163,63 @@ OcctViewport::redraw()
 	{
 		myView->Redraw();
 	}
+}
+
+void
+OcctViewport::synchronizeVisualPoints()
+{
+	if (myContext.IsNull() || myVisualPoints.empty())
+	{
+		return;
+	}
+
+	bool anyUpdated = false;
+	for (const Handle(VisualPoint)& point : myVisualPoints)
+	{
+		if (point.IsNull())
+		{
+			continue;
+		}
+
+		const gp_Pnt before = point->point();
+		point->synchronize();
+		if (before.Distance(point->point()) > 0.0)
+		{
+			myContext->Redisplay(point, Standard_False);
+			anyUpdated = true;
+		}
+	}
+
+	if (updateVisualPointSelectionStyles())
+	{
+		anyUpdated = true;
+	}
+
+	if (anyUpdated)
+	{
+		myContext->UpdateCurrentViewer();
+	}
+}
+
+bool
+OcctViewport::updateVisualPointSelectionStyles()
+{
+	bool anyUpdated = false;
+
+	for (const Handle(VisualPoint)& point : myVisualPoints)
+	{
+		if (point.IsNull())
+		{
+			continue;
+		}
+
+		const bool isSelected = myContext->IsSelected(point);
+		if (point->setSelectedStyle(isSelected))
+		{
+			myContext->Redisplay(point, Standard_False);
+			anyUpdated = true;
+		}
+	}
+
+	return anyUpdated;
 }

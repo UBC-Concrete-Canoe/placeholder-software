@@ -6,6 +6,18 @@ ViewportController::ViewportController(OcctViewport* viewport)
 }
 
 void
+ViewportController::synchronizeAndFlush()
+{
+	if (!m_viewport || !m_viewport->getView())
+	{
+		return;
+	}
+
+	m_viewport->synchronizeVisualPoints();
+	FlushViewEvents(m_viewport->getContext(), m_viewport->getView(), true);
+}
+
+void
 ViewportController::onResize()
 {
 	if (m_viewport && m_viewport->getView())
@@ -38,8 +50,14 @@ ViewportController::onMousePressEvent(QMouseEvent* e)
 	}
 
 	Graphic3d_Vec2i pos(e->position().x(), e->position().y());
+	if (e->button() == Qt::LeftButton)
+	{
+		m_leftButtonPressed = true;
+		m_leftButtonDragged = false;
+		m_leftPressPos = pos;
+	}
 	PressMouseButton(pos, btn, Aspect_VKeyFlags_NONE, false);
-	FlushViewEvents(m_viewport->getContext(), m_viewport->getView(), true);
+	synchronizeAndFlush();
 }
 
 void
@@ -67,7 +85,20 @@ ViewportController::onMouseReleaseEvent(QMouseEvent* e)
 
 	Graphic3d_Vec2i pos(e->position().x(), e->position().y());
 	ReleaseMouseButton(pos, btn, Aspect_VKeyFlags_NONE, false);
-	FlushViewEvents(m_viewport->getContext(), m_viewport->getView(), true);
+
+	// Explicit click-selection for AIS objects (e.g., VisualPoint).
+	if (e->button() == Qt::LeftButton)
+	{
+		if (m_leftButtonPressed && !m_leftButtonDragged)
+		{
+			m_viewport->getContext()->MoveTo(pos.x(), pos.y(), m_viewport->getView(), Standard_False);
+			m_viewport->getContext()->SelectDetected(AIS_SelectionScheme_Replace);
+		}
+		m_leftButtonPressed = false;
+		m_leftButtonDragged = false;
+	}
+
+	synchronizeAndFlush();
 }
 
 void
@@ -79,6 +110,18 @@ ViewportController::onMouseMoveEvent(QMouseEvent* e)
 	}
 
 	Graphic3d_Vec2i pos(e->position().x(), e->position().y());
+	m_viewport->getContext()->MoveTo(pos.x(), pos.y(), m_viewport->getView(), Standard_False);
+
+	if (m_leftButtonPressed)
+	{
+		const int dx = pos.x() - m_leftPressPos.x();
+		const int dy = pos.y() - m_leftPressPos.y();
+		if (dx * dx + dy * dy > 9)
+		{
+			m_leftButtonDragged = true;
+		}
+	}
+
 	// Aggregate all pressed buttons during motion
 	Aspect_VKeyMouse buttons = Aspect_VKeyMouse_NONE;
 
@@ -96,7 +139,7 @@ ViewportController::onMouseMoveEvent(QMouseEvent* e)
 	}
 
 	UpdateMousePosition(pos, buttons, Aspect_VKeyFlags_NONE, false);
-	FlushViewEvents(m_viewport->getContext(), m_viewport->getView(), true);
+	synchronizeAndFlush();
 }
 
 void
@@ -112,7 +155,7 @@ ViewportController::onWheelEvent(QWheelEvent* e)
 	double delta = e->angleDelta().y() / 8.0 / 15.0;
 
 	UpdateMouseScroll(Aspect_ScrollDelta(pos, delta, Aspect_VKeyFlags_NONE));
-	FlushViewEvents(m_viewport->getContext(), m_viewport->getView(), true);
+	synchronizeAndFlush();
 }
 
 void
@@ -155,4 +198,6 @@ ViewportController::onKeyEvent(QKeyEvent* e)
 			m_viewport->setViewPreset(V3d_TypeOfOrientation_Zup_Right);
 			break;
 	}
+
+	synchronizeAndFlush();
 }
