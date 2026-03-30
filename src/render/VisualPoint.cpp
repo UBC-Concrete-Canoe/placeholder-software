@@ -27,8 +27,10 @@ VisualPoint::VisualPoint(const ControlPoint* controlPoint, const ControlPointVis
 	SetHilightMode(0);
 	const Handle(Prs3d_Drawer) selectedDrawer =
 		OcctStyleMapper::makePointDrawer(m_style.selectedColor, m_style.selectedMarkerScale);
+	const Handle(Prs3d_Drawer) hoverDrawer =
+		OcctStyleMapper::makePointDrawer(m_style.hoverColor, m_style.selectedMarkerScale);
 	SetHilightAttributes(selectedDrawer);
-	SetDynamicHilightAttributes(selectedDrawer);
+	SetDynamicHilightAttributes(hoverDrawer);
 }
 
 void
@@ -68,10 +70,15 @@ VisualPoint::Compute(
 	thePrs->Clear();
 
 	Handle(Prs3d_PointAspect) pointAspect;
-	if (m_isSelected || theMode == 1)
+	if (m_isSelected)
 	{
 		pointAspect =
 			OcctStyleMapper::makePointAspect(m_style.selectedColor, m_style.selectedMarkerScale);
+	}
+	else if (theMode == 1)
+	{
+		pointAspect =
+			OcctStyleMapper::makePointAspect(m_style.hoverColor, m_style.selectedMarkerScale);
 	}
 	else
 	{

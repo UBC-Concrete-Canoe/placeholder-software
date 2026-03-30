@@ -46,20 +46,24 @@ OcctViewport::initialize(WId windowHandle)
 	myContext->SetPixelTolerance(8);
 
 	// Keep backend highlight in sync with renderer-agnostic style intent.
+	const Quantity_Color hoverColor = OcctStyleMapper::toOcctColor(myControlPointStyle.hoverColor);
 	const Quantity_Color selectedColor =
 		OcctStyleMapper::toOcctColor(myControlPointStyle.selectedColor);
-	Handle(Prs3d_PointAspect) highlightPointAspect = OcctStyleMapper::makePointAspect(
+	Handle(Prs3d_PointAspect) hoverPointAspect = OcctStyleMapper::makePointAspect(
+		myControlPointStyle.hoverColor, myControlPointStyle.selectedMarkerScale
+	);
+	Handle(Prs3d_PointAspect) selectedPointAspect = OcctStyleMapper::makePointAspect(
 		myControlPointStyle.selectedColor, myControlPointStyle.selectedMarkerScale
 	);
 	const Handle(Prs3d_Drawer) & dynamicHighlight =
 		myContext->HighlightStyle(Prs3d_TypeOfHighlight_Dynamic);
-	dynamicHighlight->SetColor(selectedColor);
-	dynamicHighlight->SetPointAspect(highlightPointAspect);
+	dynamicHighlight->SetColor(hoverColor);
+	dynamicHighlight->SetPointAspect(hoverPointAspect);
 
 	const Handle(Prs3d_Drawer) & selectedHighlight =
 		myContext->HighlightStyle(Prs3d_TypeOfHighlight_Selected);
 	selectedHighlight->SetColor(selectedColor);
-	selectedHighlight->SetPointAspect(highlightPointAspect);
+	selectedHighlight->SetPointAspect(selectedPointAspect);
 
 	// Create the view
 	myView = myViewer->CreateView();

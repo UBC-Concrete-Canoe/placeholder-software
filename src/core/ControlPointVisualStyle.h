@@ -23,7 +23,8 @@ struct RgbColor
 struct ControlPointVisualStyle
 {
 	RgbColor defaultColor{ 1.0, 1.0, 1.0 };
-	RgbColor selectedColor{ 1.0, 0.55, 0.0 };
+	RgbColor hoverColor{ 1.0, 0.55, 0.0 };
+	RgbColor selectedColor{ 1.0, 0.0, 0.0 };
 	double defaultMarkerScale = 30.0;
 	double selectedMarkerScale = 40.0;
 };
