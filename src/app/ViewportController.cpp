@@ -17,15 +17,13 @@ ViewportController::onResize()
 void
 ViewportController::onMousePressEvent(QMouseEvent* e)
 {
-	Handle(V3d_View) int_view = m_viewport->getView();
-	bool isRot = (e->buttons() & Qt::LeftButton);
-	bool isTran = (e->buttons() & Qt::MiddleButton); //Remove this line to enable panning
-
 	if (!m_viewport || !m_viewport->getView())
 	{
 		return;
 	}
-	else if (int_view->Camera()->IsOrthographic() && (isRot || isTran)) { //Remove "isTran" to enable panning
+
+	if (!m_rotationEnabled && e->button() == Qt::LeftButton)
+	{
 		return;
 	}
 
@@ -53,6 +51,11 @@ void
 ViewportController::onMouseReleaseEvent(QMouseEvent* e)
 {
 	if (!m_viewport || !m_viewport->getView())
+	{
+		return;
+	}
+
+	if (!m_rotationEnabled && e->button() == Qt::LeftButton)
 	{
 		return;
 	}
@@ -162,4 +165,10 @@ ViewportController::onKeyEvent(QKeyEvent* e)
 			m_viewport->setViewPreset(V3d_TypeOfOrientation_Zup_Right);
 			break;
 	}
+}
+
+void
+ViewportController::setRotationEnabled(bool enabled)
+{
+	m_rotationEnabled = enabled;
 }
