@@ -11,6 +11,21 @@
 #include <BRepPrimAPI_MakeBox.hxx>
 #include <gp_Pnt.hxx>
 
+namespace
+{
+ControlPointVisualStyle
+makeDefaultControlPointStyle()
+{
+	ControlPointVisualStyle pointStyle;
+	pointStyle.defaultColor = { 1.0, 1.0, 1.0 };
+	pointStyle.hoverColor = { 1.0, 0.55, 0.0 };
+	pointStyle.selectedColor = { 1.0, 0.0, 0.0 };
+	pointStyle.defaultMarkerScale = 30.0;
+	pointStyle.selectedMarkerScale = 40.0;
+	return pointStyle;
+}
+} // namespace
+
 Application::Application()
   : m_hullModel(2, 2)
 {
@@ -22,14 +37,7 @@ Application::run()
 	MainWindow* window = new MainWindow();
 	OcctWidget* occt_widget = new OcctWidget();
 	OcctViewport* occt_viewport = new OcctViewport();
-
-	ControlPointVisualStyle pointStyle;
-	pointStyle.defaultColor = { 1.0, 1.0, 1.0 };
-	pointStyle.hoverColor = { 1.0, 0.55, 0.0 };
-	pointStyle.selectedColor = { 1.0, 0.0, 0.0 };
-	pointStyle.defaultMarkerScale = 30.0;
-	pointStyle.selectedMarkerScale = 40.0;
-	occt_viewport->setControlPointStyle(pointStyle);
+	occt_viewport->setControlPointStyle(makeDefaultControlPointStyle());
 
 	// Create the controller to handle user input
 	ViewportController* viewport_controller = new ViewportController(occt_viewport);
@@ -51,7 +59,7 @@ Application::run()
 	TopoDS_Shape box = BRepPrimAPI_MakeBox(10.0, 10.0, 20.0).Shape();
 	// occt_viewport->displayShape(box);
 
-	// Create and display a demo control point for OCCT point selection.
+	// NOTE: Create and display a demo control point for OCCT point selection.
 	m_hullModel.updatePoint(0, gp_Pnt(11.0, 5.0, 10.0));
 	m_hullModel.updatePoint(1, gp_Pnt(11.0, 5.0, 15.0));
 	m_hullModel.updatePoint(2, gp_Pnt(11.0, 10.0, 10.0));
