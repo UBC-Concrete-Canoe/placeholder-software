@@ -1,8 +1,4 @@
 #include "Application.h"
-#include <Aspect_DisplayConnection.hxx>
-#include <OpenGl_GraphicDriver.hxx>
-#include <V3d_View.hxx>
-#include <V3d_Viewer.hxx>
 #include "app/ViewportController.h"
 #include "render/OcctViewport.h"
 #include "ui/MainWindow.h"
@@ -13,6 +9,12 @@
 
 namespace
 {
+/**
+ * @brief Provide startup defaults for control-point interaction styling.
+ *
+ * Keeping these defaults in one helper keeps Application::run focused on
+ * wiring and lifecycle, while still allowing easy tuning of visual intent.
+ */
 ControlPointVisualStyle
 makeDefaultControlPointStyle()
 {

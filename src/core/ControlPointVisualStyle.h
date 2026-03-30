@@ -22,9 +22,14 @@ struct RgbColor
  */
 struct ControlPointVisualStyle
 {
+	// Base point color when idle (not hovered/selected).
 	RgbColor defaultColor{ 1.0, 1.0, 1.0 };
+	// Color used by dynamic highlight while the cursor hovers a point.
 	RgbColor hoverColor{ 1.0, 0.55, 0.0 };
+	// Color used after selection (click/active selection state).
 	RgbColor selectedColor{ 1.0, 0.0, 0.0 };
+	// Base marker scale for idle rendering.
 	double defaultMarkerScale = 30.0;
+	// Marker scale used for both hover and selected emphasis.
 	double selectedMarkerScale = 40.0;
 };
