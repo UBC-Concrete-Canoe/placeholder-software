@@ -1,6 +1,5 @@
 #include <QApplication>
 #include "app/Application.h"
-#include "ui/MainWindow.h"
 
 // Linux specific
 #ifdef Q_OS_LINUX
