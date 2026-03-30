@@ -7,6 +7,7 @@
 #include <V3d_View.hxx>
 #include <V3d_Viewer.hxx>
 #include <vector>
+#include "core/ControlPointVisualStyle.h"
 
 class ControlPoint;
 class VisualPoint;
@@ -91,6 +92,16 @@ public:
 	void setShadingMode(bool wireframe);
 
 	/**
+	 * @brief Set renderer-agnostic visual style tokens for control points.
+	 */
+	void setControlPointStyle(const ControlPointVisualStyle& style);
+
+	/**
+	 * @brief Get current renderer-agnostic control-point style tokens.
+	 */
+	const ControlPointVisualStyle& controlPointStyle() const { return myControlPointStyle; }
+
+	/**
 	 * @brief Trigger a view redraw on the next render cycle.
 	 */
 	void redraw();
@@ -117,6 +128,7 @@ private:
 	Handle(V3d_View) myView;
 	Handle(AIS_InteractiveContext) myContext;
 	std::vector<Handle(VisualPoint)> myVisualPoints;
+	ControlPointVisualStyle myControlPointStyle;
 };
 
 #endif // OCCTVIEWPORT_H

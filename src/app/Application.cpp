@@ -23,6 +23,13 @@ Application::run()
 	OcctWidget* occt_widget = new OcctWidget();
 	OcctViewport* occt_viewport = new OcctViewport();
 
+	ControlPointVisualStyle pointStyle;
+	pointStyle.defaultColor = { 1.0, 1.0, 1.0 };
+	pointStyle.selectedColor = { 1.0, 0.55, 0.0 };
+	pointStyle.defaultMarkerScale = 30.0;
+	pointStyle.selectedMarkerScale = 40.0;
+	occt_viewport->setControlPointStyle(pointStyle);
+
 	// Create the controller to handle user input
 	ViewportController* viewport_controller = new ViewportController(occt_viewport);
 

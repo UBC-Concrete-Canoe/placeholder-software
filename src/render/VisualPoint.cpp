@@ -1,4 +1,5 @@
 #include "VisualPoint.h"
+#include "render/OcctStyleMapper.h"
 
 #include <Graphic3d_ArrayOfPoints.hxx>
 #include <Prs3d_Drawer.hxx>
@@ -14,17 +15,20 @@ IMPLEMENT_STANDARD_RTTIEXT(VisualPoint, AIS_InteractiveObject)
 namespace
 {
 constexpr Standard_Real kSyncEpsilon = 1.0e-7;
-constexpr Standard_Real kDefaultMarkerScale = 30.0;
-constexpr Standard_Real kSelectedMarkerScale = 40.0;
 } // namespace
 
-VisualPoint::VisualPoint(const ControlPoint* controlPoint)
+VisualPoint::VisualPoint(const ControlPoint* controlPoint, const ControlPointVisualStyle& style)
   : m_controlPoint(controlPoint)
   , m_cachedPoint(pointFromModel())
+  , m_style(style)
 {
 	SetInfiniteState(Standard_False);
 	SetMutable(Standard_True);
-	SetHilightMode(1);
+	SetHilightMode(0);
+	const Handle(Prs3d_Drawer) selectedDrawer =
+		OcctStyleMapper::makePointDrawer(m_style.selectedColor, m_style.selectedMarkerScale);
+	SetHilightAttributes(selectedDrawer);
+	SetDynamicHilightAttributes(selectedDrawer);
 }
 
 void
@@ -67,12 +71,12 @@ VisualPoint::Compute(
 	if (m_isSelected || theMode == 1)
 	{
 		pointAspect =
-			new Prs3d_PointAspect(Aspect_TOM_POINT, Quantity_NOC_ORANGE, kSelectedMarkerScale);
+			OcctStyleMapper::makePointAspect(m_style.selectedColor, m_style.selectedMarkerScale);
 	}
 	else
 	{
 		pointAspect =
-			new Prs3d_PointAspect(Aspect_TOM_POINT, Quantity_NOC_WHITE, kDefaultMarkerScale);
+			OcctStyleMapper::makePointAspect(m_style.defaultColor, m_style.defaultMarkerScale);
 	}
 
 	myDrawer->SetPointAspect(pointAspect);

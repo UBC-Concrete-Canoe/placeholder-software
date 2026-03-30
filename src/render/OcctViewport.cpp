@@ -1,5 +1,6 @@
 #include "OcctViewport.h"
 #include "core/ControlPoint.h"
+#include "render/OcctStyleMapper.h"
 #include "render/VisualPoint.h"
 
 // OCCT Core
@@ -44,6 +45,22 @@ OcctViewport::initialize(WId windowHandle)
 	myContext->DefaultDrawer()->SetFaceBoundaryDraw(true);
 	myContext->SetPixelTolerance(8);
 
+	// Keep backend highlight in sync with renderer-agnostic style intent.
+	const Quantity_Color selectedColor =
+		OcctStyleMapper::toOcctColor(myControlPointStyle.selectedColor);
+	Handle(Prs3d_PointAspect) highlightPointAspect = OcctStyleMapper::makePointAspect(
+		myControlPointStyle.selectedColor, myControlPointStyle.selectedMarkerScale
+	);
+	const Handle(Prs3d_Drawer) & dynamicHighlight =
+		myContext->HighlightStyle(Prs3d_TypeOfHighlight_Dynamic);
+	dynamicHighlight->SetColor(selectedColor);
+	dynamicHighlight->SetPointAspect(highlightPointAspect);
+
+	const Handle(Prs3d_Drawer) & selectedHighlight =
+		myContext->HighlightStyle(Prs3d_TypeOfHighlight_Selected);
+	selectedHighlight->SetColor(selectedColor);
+	selectedHighlight->SetPointAspect(highlightPointAspect);
+
 	// Create the view
 	myView = myViewer->CreateView();
 	myView->SetImmediateUpdate(false);
@@ -84,12 +101,18 @@ OcctViewport::displayControlPoint(const ControlPoint* point)
 		return;
 	}
 
-	Handle(VisualPoint) visualPoint = new VisualPoint(point);
+	Handle(VisualPoint) visualPoint = new VisualPoint(point, myControlPointStyle);
 	myContext->Display(visualPoint, Standard_False);
 	myContext->Activate(visualPoint, 0, Standard_False);
 	myVisualPoints.push_back(visualPoint);
 	myView->FitAll();
 	myContext->UpdateCurrentViewer();
+}
+
+void
+OcctViewport::setControlPointStyle(const ControlPointVisualStyle& style)
+{
+	myControlPointStyle = style;
 }
 
 void
@@ -174,7 +197,7 @@ OcctViewport::synchronizeVisualPoints()
 	}
 
 	bool anyUpdated = false;
-	for (const Handle(VisualPoint)& point : myVisualPoints)
+	for (const Handle(VisualPoint) & point : myVisualPoints)
 	{
 		if (point.IsNull())
 		{
@@ -206,7 +229,7 @@ OcctViewport::updateVisualPointSelectionStyles()
 {
 	bool anyUpdated = false;
 
-	for (const Handle(VisualPoint)& point : myVisualPoints)
+	for (const Handle(VisualPoint) & point : myVisualPoints)
 	{
 		if (point.IsNull())
 		{
