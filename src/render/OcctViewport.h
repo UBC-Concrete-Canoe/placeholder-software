@@ -15,8 +15,7 @@
  * - Displaying and removing geometry (TopoDS_Shape objects)
  * - Viewport transformations (fitting, zoom, pan, rotate)
  * - Display mode control (shaded vs wireframe)
- * - View pre
- *  configurations (top, bottom, front, side views)
+ * - View preset configurations (top, bottom, front, side views)
  */
 class OcctViewport
 {
@@ -39,16 +38,16 @@ public:
 
 	/**
 	 * @brief Tells OcctViewport how to copy the render to other views.
-	 * 
-	 * Obtains the context of the main 3D viewport, and passes this 
+	 *
+	 * Obtains the context of the main 3D viewport, and passes this
 	 * context to other viewports.
 	 * Ensures all viewports are displaying the same object rather than
 	 * several copies of the object.
-	 * 
+	 *
 	 * @param windowHandle Native window handle from Qt (WId)
 	 * @param sharedContext The interactive context from the "main" 3D view.
 	 */
-    void initialize(WId windowHandle, Handle(AIS_InteractiveContext) sharedContext);
+	void initialize(WId windowHandle, Handle(AIS_InteractiveContext) sharedContext);
 
 	/**
 	 * @brief Display a shape in the viewport.
@@ -105,9 +104,17 @@ public:
 	Handle(V3d_View) getView() { return myView; }
 
 private:
+	/**
+	 * @brief Bind the OCCT view to the platform-native window.
+	 * @param windowHandle Native widget handle (WId).
+	 */
 	void setupView(WId windowHandle);
+
+	//! OCCT viewer shared by one or more views.
 	Handle(V3d_Viewer) myViewer;
+	//! OCCT view rendered into the host widget.
 	Handle(V3d_View) myView;
+	//! Interactive scene context used for selection/display state.
 	Handle(AIS_InteractiveContext) myContext;
 };
 

@@ -1,6 +1,7 @@
 #include "ViewportManager.h"
-#include <memory>
+#include "MainWindow.h"
 #include "OcctWidget.h"
+#include "app/ViewportController.h"
 
 ViewportManager::ViewportManager()
 {
@@ -22,6 +23,8 @@ ViewportManager::ViewportManager()
 	bodyplan_controller->setRotationEnabled(false);
 }
 
+ViewportManager::~ViewportManager() = default;
+
 void
 ViewportManager::initializeViewport(MainWindow* window)
 {
@@ -32,6 +35,11 @@ ViewportManager::initializeViewport(MainWindow* window)
 	OcctWidget* plan_widget = window->findChild<OcctWidget*>("planWidget");
 	OcctWidget* profile_widget = window->findChild<OcctWidget*>("profileWidget");
 	OcctWidget* bodyplan_widget = window->findChild<OcctWidget*>("bodyplanWidget");
+
+	if (!persp_widget || !plan_widget || !profile_widget || !bodyplan_widget)
+	{
+		return;
+	}
 
 	// Ensure Qt creates a native handle; required for OCCT embedding
 	(void)persp_widget->winId();

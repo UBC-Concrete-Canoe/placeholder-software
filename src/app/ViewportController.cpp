@@ -112,7 +112,7 @@ ViewportController::onMouseMoveEvent(QMouseEvent* e)
 void
 ViewportController::onWheelEvent(QWheelEvent* e)
 {
-	if (!m_viewport->getView())
+	if (!m_viewport || !m_viewport->getView())
 	{
 		return;
 	}
