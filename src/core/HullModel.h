@@ -1,6 +1,7 @@
 #ifndef HULLMODEL_H
 #define HULLMODEL_H
 
+#include <cstddef>
 #include <unordered_map>
 #include <vector>
 #include "ControlPoint.h"
@@ -34,6 +35,7 @@ public:
 	 * @throws std::out_of_range If (u, v) is outside the configured lattice.
 	 */
 	ControlPoint& getPoint(int u, int v);
+
 	/**
 	 * @brief Get a read-only control point at (u, v).
 	 * @param u Zero-based U index.
@@ -53,7 +55,7 @@ public:
 
 	/**
 	 * @brief Export control points as OCCT poles.
-	 * @return 1-based `TColgp_Array2OfPnt` suitable for OCCT surface APIs.
+	 * @return 1-based TColgp_Array2OfPnt suitable for OCCT surface APIs.
 	 */
 	TColgp_Array2OfPnt toOcctPoles() const;
 
@@ -87,7 +89,7 @@ private:
 	 * @brief Convert 2D lattice coordinates to row-major 1D index.
 	 * @param u Zero-based U index.
 	 * @param v Zero-based V index.
-	 * @return Flat vector index for `m_points`.
+	 * @return Flat vector index for m_points.
 	 * @throws std::out_of_range If (u, v) is outside the configured lattice.
 	 */
 	size_t getIndex(int u, int v) const;

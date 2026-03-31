@@ -38,6 +38,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     src/core/HullModel.cpp
     src/render/OcctViewport.cpp
     src/render/VisualPoint.cpp
+    src/render/WireframeManager.cpp
     
     src/ui/MainWindow.ui
     src/ui/images.qrc
