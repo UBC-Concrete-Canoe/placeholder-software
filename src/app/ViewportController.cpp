@@ -34,6 +34,20 @@ ViewportController::onMousePressEvent(QMouseEvent* e)
 		return;
 	}
 
+    const int x = static_cast<int>(e->position().x());
+	const int y = static_cast<int>(e->position().y());
+ 
+	// Let MoveTool attempt point selection first on left-click.
+	// If it claims the event (a VisualPoint was hit), skip rest of function.
+	if (e->button() == Qt::LeftButton && m_moveTool)
+	{
+		if (m_moveTool->onMousePress(x, y))
+		{
+			synchronizeAndFlush();
+			return;
+		}
+	}
+
 	// Map Qt button enum to OCCT enum
 	Aspect_VKeyMouse btn = Aspect_VKeyMouse_NONE;
 	if (e->button() == Qt::LeftButton)
@@ -66,6 +80,15 @@ ViewportController::onMouseReleaseEvent(QMouseEvent* e)
 	if (!m_viewport || !m_viewport->getView())
 	{
 		return;
+	}
+
+    const int x = static_cast<int>(e->position().x());
+	const int y = static_cast<int>(e->position().y());
+ 
+	// Notify MoveTool on release so it ends the drag.
+	if (e->button() == Qt::LeftButton && m_moveTool)
+	{
+		m_moveTool->onMouseRelease(x, y);
 	}
 
 	// Map Qt button enum to OCCT enum
@@ -106,6 +129,18 @@ ViewportController::onMouseMoveEvent(QMouseEvent* e)
 {
 	if (!m_viewport || !m_viewport->getView())
 	{
+		return;
+	}
+
+    const int x = static_cast<int>(e->position().x());
+	const int y = static_cast<int>(e->position().y());
+ 
+	// If MoveTool is actively dragging a point, let it consume
+	// the event entirely and skip orbit. synchronizeAndFlush() will pick
+	// up the dirty flag set by ControlPoint::setPosition().
+	if (m_moveTool && m_moveTool->onMouseMove(x, y))
+	{
+		synchronizeAndFlush();
 		return;
 	}
 
@@ -200,4 +235,13 @@ ViewportController::onKeyEvent(QKeyEvent* e)
 	}
 
 	synchronizeAndFlush();
+}
+
+void
+ViewportController::setModel(HullModel* model)
+{
+    m_moveTool = std::make_unique<MoveTool>(
+        m_viewport->getContext(),
+        m_viewport->getView(),
+        model);
 }
