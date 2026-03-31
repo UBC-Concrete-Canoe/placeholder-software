@@ -48,6 +48,11 @@ ViewportController::onMousePressEvent(QMouseEvent* e, qreal devicePixelRatio)
 		return;
 	}
 
+	if (!m_rotationEnabled && e->button() == Qt::LeftButton)
+	{
+		return;
+	}
+
 	// Map Qt button enum to OCCT enum
 	Aspect_VKeyMouse btn = Aspect_VKeyMouse_NONE;
 	if (e->button() == Qt::LeftButton)
@@ -78,6 +83,11 @@ void
 ViewportController::onMouseReleaseEvent(QMouseEvent* e, qreal devicePixelRatio)
 {
 	if (!m_viewport || !m_viewport->getView())
+	{
+		return;
+	}
+
+	if (!m_rotationEnabled && e->button() == Qt::LeftButton)
 	{
 		return;
 	}
@@ -161,7 +171,7 @@ ViewportController::onMouseMoveEvent(QMouseEvent* e, qreal devicePixelRatio)
 void
 ViewportController::onWheelEvent(QWheelEvent* e, qreal devicePixelRatio)
 {
-	if (!m_viewport->getView())
+	if (!m_viewport || !m_viewport->getView())
 	{
 		return;
 	}
@@ -216,4 +226,10 @@ ViewportController::onKeyEvent(QKeyEvent* e)
 	}
 
 	synchronizeAndFlush();
+}
+
+void
+ViewportController::setRotationEnabled(bool enabled)
+{
+	m_rotationEnabled = enabled;
 }

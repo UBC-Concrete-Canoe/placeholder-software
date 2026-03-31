@@ -1,12 +1,17 @@
 #include <QApplication>
 #include "app/Application.h"
-#include "ui/MainWindow.h"
 
 // Linux specific
 #ifdef Q_OS_LINUX
 #include <cstdlib>
 #endif
 
+/**
+ * @brief Program entry point.
+ *
+ * Initializes Qt and starts the application event loop.
+ * On Linux, forces X11/XWayland because OCCT rendering is not supported on Wayland.
+ */
 int
 main(int argc, char* argv[])
 {

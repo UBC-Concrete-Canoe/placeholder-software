@@ -59,10 +59,17 @@ public:
 	 */
 	void onResize();
 
+	/**
+	 * @brief Enable or disable mouse-driven orbit rotation.
+	 * @param enabled False to block left-button orbit while keeping pan/zoom active.
+	 */
+	void setRotationEnabled(bool enabled);
+
 private:
 	void synchronizeAndFlush();
 	bool m_leftButtonPressed = false;
 	bool m_leftButtonDragged = false;
 	Graphic3d_Vec2i m_leftPressPos = Graphic3d_Vec2i(0, 0);
 	OcctViewport* m_viewport;
+	bool m_rotationEnabled = true;
 };

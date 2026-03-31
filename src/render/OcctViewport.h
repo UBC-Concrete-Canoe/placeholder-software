@@ -41,6 +41,19 @@ public:
 	void initialize(WId windowHandle);
 
 	/**
+	 * @brief Tells OcctViewport how to copy the render to other views.
+	 *
+	 * Obtains the context of the main 3D viewport, and passes this
+	 * context to other viewports.
+	 * Ensures all viewports are displaying the same object rather than
+	 * several copies of the object.
+	 *
+	 * @param windowHandle Native window handle from Qt (WId)
+	 * @param sharedContext The interactive context from the "main" 3D view.
+	 */
+	void initialize(WId windowHandle, Handle(AIS_InteractiveContext) sharedContext);
+
+	/**
 	 * @brief Display a shape in the viewport.
 	 *
 	 * Wraps the shape in an AIS_Shape and adds it to the context.
@@ -120,12 +133,22 @@ public:
 
 private:
 	/**
+	 * @brief Bind the OCCT view to the platform-native window.
+	 * @param windowHandle Native widget handle (WId).
+	 */
+	void setupView(WId windowHandle);
+
+	//! OCCT viewer shared by one or more views.
+
+	/**
 	 * @brief Apply selected/unselected style to tracked visual points.
 	 * @return True if any point style changed.
 	 */
 	bool updateVisualPointSelectionStyles();
 	Handle(V3d_Viewer) myViewer;
+	//! OCCT view rendered into the host widget.
 	Handle(V3d_View) myView;
+	//! Interactive scene context used for selection/display state.
 	Handle(AIS_InteractiveContext) myContext;
 	std::vector<Handle(VisualPoint)> myVisualPoints;
 	ControlPointVisualStyle myControlPointStyle;
