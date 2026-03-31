@@ -48,10 +48,12 @@ Application::run()
 	m_hullModel.updatePoint(1, gp_Pnt(11.0, 5.0, 15.0));
 	m_hullModel.updatePoint(2, gp_Pnt(11.0, 10.0, 10.0));
 	m_hullModel.updatePoint(3, gp_Pnt(11.0, 10.0, 15.0));
-	occt_viewport->displayControlPoint(m_hullModel.pointAt(0));
-	occt_viewport->displayControlPoint(m_hullModel.pointAt(1));
-	occt_viewport->displayControlPoint(m_hullModel.pointAt(2));
-	occt_viewport->displayControlPoint(m_hullModel.pointAt(3));
+	occt_viewport->displayControlPoint(&m_hullModel.getPoint(0, 0));
+    occt_viewport->displayControlPoint(&m_hullModel.getPoint(0, 1));
+    occt_viewport->displayControlPoint(&m_hullModel.getPoint(1, 0));
+    occt_viewport->displayControlPoint(&m_hullModel.getPoint(1, 1));
+
+    viewport_controller->setModel(&m_hullModel);
 }
 
 void
