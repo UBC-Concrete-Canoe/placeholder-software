@@ -9,8 +9,12 @@
 #include "ui/OcctWidget.h"
 // OCCT helper for creating a test box
 #include <BRepPrimAPI_MakeBox.hxx>
+#include <gp_Pnt.hxx>
 
-Application::Application() = default;
+Application::Application()
+  : m_hullModel(2, 2)
+{
+}
 
 void
 Application::run()
@@ -38,6 +42,18 @@ Application::run()
 	// Create and display a demo object
 	TopoDS_Shape box = BRepPrimAPI_MakeBox(10.0, 10.0, 20.0).Shape();
 	occt_viewport->displayShape(box);
+
+	// Create and display a demo control point for OCCT point selection.
+	m_hullModel.updatePoint(0, gp_Pnt(11.0, 5.0, 10.0));
+	m_hullModel.updatePoint(1, gp_Pnt(11.0, 5.0, 15.0));
+	m_hullModel.updatePoint(2, gp_Pnt(11.0, 10.0, 10.0));
+	m_hullModel.updatePoint(3, gp_Pnt(11.0, 10.0, 15.0));
+	occt_viewport->displayControlPoint(&m_hullModel.getPoint(0, 0));
+    occt_viewport->displayControlPoint(&m_hullModel.getPoint(0, 1));
+    occt_viewport->displayControlPoint(&m_hullModel.getPoint(1, 0));
+    occt_viewport->displayControlPoint(&m_hullModel.getPoint(1, 1));
+
+    viewport_controller->setModel(&m_hullModel);
 }
 
 void

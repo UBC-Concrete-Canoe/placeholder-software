@@ -32,10 +32,12 @@ qt_add_executable(${PROJECT_NAME}
 target_sources(${PROJECT_NAME} PRIVATE 
     src/app/Application.cpp 
     src/app/ViewportController.cpp
+    src/app/MoveTool.cpp
     src/ui/MainWindow.cpp 
     src/ui/OcctWidget.cpp 
     src/core/HullModel.cpp
     src/render/OcctViewport.cpp
+    src/render/VisualPoint.cpp
     
     src/ui/MainWindow.ui
     src/ui/images.qrc
