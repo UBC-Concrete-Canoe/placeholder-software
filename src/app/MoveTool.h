@@ -72,7 +72,7 @@ public:
 
 
     Mode mode()          const { return m_mode; }
-    bool hasSelection()  const { return m_selectedIndex != nullptr; }
+    bool hasSelection()  const { return m_selectedPoint != nullptr; }
 
 private:
     /**
