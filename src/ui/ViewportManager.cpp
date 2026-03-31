@@ -1,4 +1,5 @@
 #include "ViewportManager.h"
+#include <gp_Pnt.hxx>
 #include "MainWindow.h"
 #include "OcctWidget.h"
 #include "app/ViewportController.h"
@@ -88,4 +89,19 @@ ViewportManager::set_planars()
 	plan_viewport->fitAll();
 	profile_viewport->fitAll();
 	bodyplan_viewport->fitAll();
+}
+
+void
+ViewportManager::create_demo_control_points()
+{
+	// Keep points near the demo box so they are immediately visible/selectable.
+	demo_hull_model.updatePoint(0, gp_Pnt(11.0, 5.0, 10.0));
+	demo_hull_model.updatePoint(1, gp_Pnt(11.0, 5.0, 15.0));
+	demo_hull_model.updatePoint(2, gp_Pnt(11.0, 10.0, 10.0));
+	demo_hull_model.updatePoint(3, gp_Pnt(11.0, 10.0, 15.0));
+
+	for (std::size_t i = 0; i < demo_hull_model.pointCount(); ++i)
+	{
+		persp_viewport->displayControlPoint(demo_hull_model.pointAt(i));
+	}
 }

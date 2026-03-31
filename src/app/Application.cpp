@@ -20,6 +20,7 @@ Application::run()
 	// Create and display a demo object
 	TopoDS_Shape box = BRepPrimAPI_MakeBox(10.0, 10.0, 20.0).Shape();
 	m_viewManager->create_shape(box);
+	m_viewManager->create_demo_control_points();
 
 	// Configure planar views
 	m_viewManager->set_planars();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include "core/HullModel.h"
 #include "render/OcctViewport.h"
 
 class MainWindow;
@@ -38,6 +39,11 @@ public:
 	 */
 	void set_planars();
 
+	/**
+	 * @brief Spawn a small set of hardcoded control points for visual verification.
+	 */
+	void create_demo_control_points();
+
 private:
 	//! Primary perspective viewport.
 	std::unique_ptr<OcctViewport> persp_viewport;
@@ -56,4 +62,7 @@ private:
 	std::unique_ptr<ViewportController> profile_controller;
 	//! Input controller for body-plan viewport.
 	std::unique_ptr<ViewportController> bodyplan_controller;
+
+	//! Backing model for demo control points so displayed pointers remain valid.
+	HullModel demo_hull_model{ 2, 2 };
 };
