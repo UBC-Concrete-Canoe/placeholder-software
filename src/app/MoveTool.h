@@ -9,7 +9,8 @@
 #include <V3d_View.hxx>
 #include <gp_Pnt.hxx>
 
-#include "model/HullModel.h"
+#include "core/HullModel.h"
+#include "render/VisualPoint.h"
 #include "app/MoveCommand.h"
 
 /**
