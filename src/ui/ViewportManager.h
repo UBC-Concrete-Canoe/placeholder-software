@@ -3,6 +3,7 @@
 #include <memory>
 #include "core/HullModel.h"
 #include "render/OcctViewport.h"
+#include "render/WireframeManager.h"
 
 class MainWindow;
 class ViewportController;
@@ -29,20 +30,14 @@ public:
 	void initializeViewport(MainWindow* window);
 
 	/**
-	 * @brief Displays sample geometry for testing.
-	 * @param shape The geometry to be rendered in the viewports.
-	 */
-	void create_shape(TopoDS_Shape shape);
-
-	/**
 	 * @brief Orient the planar views with respect to the geometry.
 	 */
 	void set_planars();
 
 	/**
-	 * @brief Spawn a small set of hardcoded control points for visual verification.
+	 * @brief Build and display a demo HullModel with visual points and wireframe.
 	 */
-	void create_demo_control_points();
+	void create_demo_hull_model();
 
 private:
 	//! Primary perspective viewport.
@@ -63,6 +58,8 @@ private:
 	//! Input controller for body-plan viewport.
 	std::unique_ptr<ViewportController> bodyplan_controller;
 
-	//! Backing model for demo control points so displayed pointers remain valid.
-	HullModel demo_hull_model{ 2, 2 };
+	//! Backing model for demo content so displayed control-point pointers remain valid.
+	std::shared_ptr<HullModel> demo_hull_model;
+	//! Wireframe renderer bound to the demo model.
+	std::unique_ptr<WireframeManager> demo_wireframe_manager;
 };

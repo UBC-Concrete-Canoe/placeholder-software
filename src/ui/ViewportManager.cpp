@@ -72,12 +72,6 @@ ViewportManager::initializeViewport(MainWindow* window)
 }
 
 void
-ViewportManager::create_shape(TopoDS_Shape shape)
-{
-	persp_viewport->displayShape(shape);
-}
-
-void
 ViewportManager::set_planars()
 {
 	// Set viewing angles
@@ -92,16 +86,37 @@ ViewportManager::set_planars()
 }
 
 void
-ViewportManager::create_demo_control_points()
+ViewportManager::create_demo_hull_model()
 {
-	// Keep points near the demo box so they are immediately visible/selectable.
-	demo_hull_model.updatePoint(0, gp_Pnt(11.0, 5.0, 10.0));
-	demo_hull_model.updatePoint(1, gp_Pnt(11.0, 5.0, 15.0));
-	demo_hull_model.updatePoint(2, gp_Pnt(11.0, 10.0, 10.0));
-	demo_hull_model.updatePoint(3, gp_Pnt(11.0, 10.0, 15.0));
-
-	for (std::size_t i = 0; i < demo_hull_model.pointCount(); ++i)
+	if (!persp_viewport || !persp_viewport->getContext())
 	{
-		persp_viewport->displayControlPoint(demo_hull_model.pointAt(i));
+		return;
 	}
+
+	// Build a small arched lattice so both points and wireframe are easy to verify.
+	const int uCount = 4;
+	const int vCount = 4;
+	const double spacing = 30.0;
+	demo_hull_model = std::make_shared<HullModel>(uCount, vCount);
+
+	int pointId = 0;
+	for (int u = 0; u < uCount; ++u)
+	{
+		for (int v = 0; v < vCount; ++v)
+		{
+			const bool interior = (u > 0 && u < (uCount - 1) && v > 0 && v < (vCount - 1));
+			const double zHeight = interior ? 10.0 : 0.0;
+			demo_hull_model->updatePoint(pointId++, gp_Pnt(u * spacing, v * spacing, zHeight));
+		}
+	}
+
+	for (std::size_t i = 0; i < demo_hull_model->pointCount(); ++i)
+	{
+		persp_viewport->displayControlPoint(demo_hull_model->pointAt(i));
+	}
+
+	demo_wireframe_manager =
+		std::make_unique<WireframeManager>(persp_viewport->getContext(), demo_hull_model);
+	demo_wireframe_manager->BuildLattice();
+	persp_viewport->fitAll();
 }
