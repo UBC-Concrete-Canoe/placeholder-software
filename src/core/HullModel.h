@@ -1,7 +1,6 @@
 #ifndef HULLMODEL_H
 #define HULLMODEL_H
 
-#include <unordered_map>
 #include <vector>
 #include "ControlPoint.h"
 

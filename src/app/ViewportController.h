@@ -3,6 +3,9 @@
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include "render/OcctViewport.h"
+#include "app/MoveTool.h"
+#include "core/HullModel.h"
+#include <memory>
 
 // Inherit from AIS_ViewController to get standard OCCT mouse math (orbit/zoom/pan calculations)
 #include <AIS_ViewController.hxx>
