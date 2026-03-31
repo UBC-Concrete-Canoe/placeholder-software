@@ -59,10 +59,22 @@ public:
 	 */
 	void onResize();
 
+    /**
+     * @brief Attach a hull model to enable point picking and dragging.
+     *
+     * Creates the internal MoveTool using the viewport's current AIS context
+     * and view. Must be called after initialize() so the context and view
+     * are valid.
+     *
+     * @param model Hull model whose control points will be selectable and draggable.
+     */
+    void setModel(HullModel* model);
+
 private:
 	void synchronizeAndFlush();
 	bool m_leftButtonPressed = false;
 	bool m_leftButtonDragged = false;
 	Graphic3d_Vec2i m_leftPressPos = Graphic3d_Vec2i(0, 0);
 	OcctViewport* m_viewport;
+    std::unique_ptr<MoveTool> m_moveTool;
 };
