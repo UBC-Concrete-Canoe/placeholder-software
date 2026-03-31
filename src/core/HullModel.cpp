@@ -89,3 +89,21 @@ HullModel::getIndex(int u, int v) const
 
 	return (u * m_vCount) + v;
 }
+
+bool
+HullModel::findUV(const ControlPoint* ptr, int& outU, int& outV) const
+{
+    for (int u = 0; u < m_uCount; ++u)
+    {
+        for (int v = 0; v < m_vCount; ++v)
+        {
+            if (&m_points[getIndex(u, v)] == ptr)
+            {
+                outU = u;
+                outV = v;
+                return true;
+            }
+        }
+    }
+    return false;
+}
