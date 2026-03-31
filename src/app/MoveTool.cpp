@@ -23,38 +23,55 @@ bool MoveTool::onMousePress(int x, int y)
     if (!m_context->MoreSelected())
     {
         m_context->ClearSelected(Standard_True);
-        m_selectedIndex = -1;
+        m_selectedIndex = nullptr;
         m_mode = Mode::View;
         return false;
     }
 
     Handle(AIS_InteractiveObject) picked = m_context->SelectedInteractive();
+    Handle(VisualPoint) vp = Handle(VisualPoint)::DownCast(picked);
 
-    for (int i = 0; i < m_model->size(); ++i)
+    if (vp.IsNull())
     {
-        if (m_model->aisShapeAt(i) == picked)
-        {
-            m_selectedIndex = i;
-            m_mode = Mode::Select;
-            m_lastX = x;
-            m_lastY = y;
-
-            const ControlPoint& cp = m_model->points()[i];
-            m_dragAnchor = gp_Pnt(cp.x, cp.y, cp.z);
-            m_accumulated = Graphic3d_Vec3(0.f, 0.f, 0.f);
-
-            return true;  // suppress orbit
-        }
+        // Clicked something that isn't a VisualPoint - ignore.
+        m_selectedPoint = nullptr;
+        m_mode = Mode::View;
+        return false;
     }
-
-    m_selectedIndex = -1;
-    m_mode = Mode::View;
-    return false;
+ 
+    // Find the matching ControlPoint in the model by comparing positions.
+    m_selectedPoint = nullptr;
+    for (int u = 0; u < m_model->getUCount(); ++u)
+    {
+        for (int v = 0; v < m_model->getVCount(); ++v)
+        {
+            ControlPoint& cp = m_model->getPoint(u, v);
+            if (cp.getPosition().Distance(vp->point()) < 1e-6)
+            {
+                m_selectedPoint = &cp;
+                break;
+            }
+        }
+        if (m_selectedPoint) break;
+    }
+ 
+    if (!m_selectedPoint)
+    {
+        m_mode = Mode::View;
+        return false;
+    }
+ 
+    m_mode = Mode::Select;
+    m_lastX = x;
+    m_lastY = y;
+    m_dragAnchor = m_selectedPoint->getPosition();
+ 
+    return true;  // suppress orbit
 }
 
 bool MoveTool::onMouseMove(int x, int y)
 {
-    if (m_mode == Mode::View || m_selectedIndex < 0)
+    if (m_mode == Mode::View || !m_selectedPoint)
         return false;
 
     if (m_mode == Mode::Select)
@@ -70,34 +87,26 @@ bool MoveTool::onMouseMove(int x, int y)
                          curr.y() - prev.y(),
                          curr.z() - prev.z());
 
-    // Apply immediately so the point tracks the cursor in real time.
-    m_model->movePoint(m_selectedIndex,
-                       static_cast<double>(delta.x()),
-                       static_cast<double>(delta.y()),
-                       static_cast<double>(delta.z()));
-
-    // Accumulate into the drag's running total (committed as one command on release).
-    m_accumulated = Graphic3d_Vec3(m_accumulated.x() + delta.x(),
-                                   m_accumulated.y() + delta.y(),
-                                   m_accumulated.z() + delta.z());
-
-    // Advance the anchor to the new point position for the next frame.
-    const ControlPoint& cp = m_model->points()[m_selectedIndex];
-    m_dragAnchor = gp_Pnt(cp.x, cp.y, cp.z);
-
-    m_lastX = x;
-    m_lastY = y;
-
+    const gp_Pnt& current = m_selectedPoint->getPosition();
+    gp_Pnt newPos(
+        current.X() + static_cast<double>(delta.x()),
+        current.Y() + static_cast<double>(delta.y()),
+        current.Z() + static_cast<double>(delta.z()));
+ 
+    m_selectedPoint->setPosition(newPos);
+ 
+    // Advance the anchor to the new position for the next frame.
+    m_dragAnchor = newPos;
+    m_lastX      = x;
+    m_lastY      = y;
+ 
     return true;  // suppress orbit
 }
 
 void MoveTool::onMouseRelease(int x, int y)
 {
-    if (m_mode != Mode::Move)
-        return;
-
-    // Only commit a command if the point actually moved.
-    const float kEpsilon = 1e-6f;
+    if (m_mode == Mode::Move)
+        m_mode = Mode::Select;
     // if (std::abs(m_accumulated.x()) > kEpsilon ||
     //     std::abs(m_accumulated.y()) > kEpsilon ||
     //     std::abs(m_accumulated.z()) > kEpsilon)
@@ -117,9 +126,6 @@ void MoveTool::onMouseRelease(int x, int y)
     //     while (!m_redoStack.empty())
     //         m_redoStack.pop();
     // }
-
-    m_accumulated = Graphic3d_Vec3(0.f, 0.f, 0.f);
-    m_mode = Mode::Select;
 }
 
 // void MoveTool::undo()
