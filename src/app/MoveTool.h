@@ -60,19 +60,18 @@ public:
 
     // Undo / Redo - Ask if this should be moved up to a bigger structure and not specific to this
  
-    //! Reverse the most recent completed drag. No-op if stack is empty.
-    void undo();
+    // //! Reverse the most recent completed drag. No-op if stack is empty.
+    // void undo();
 
-    //! Re-apply the most recently undone drag. No-op if redo stack is empty.
-    void redo();
+    // //! Re-apply the most recently undone drag. No-op if redo stack is empty.
+    // void redo();
 
-    bool canUndo() const { return !m_undoStack.empty(); }
-    bool canRedo() const { return !m_redoStack.empty(); }
+    // bool canUndo() const { return !m_undoStack.empty(); }
+    // bool canRedo() const { return !m_redoStack.empty(); }
 
 
     Mode mode()          const { return m_mode; }
-    bool hasSelection()  const { return m_selectedIndex >= 0; }
-    int  selectedIndex() const { return m_selectedIndex; }
+    bool hasSelection()  const { return m_selectedIndex != nullptr; }
 
 private:
     /**
@@ -87,7 +86,8 @@ private:
     HullModel* m_model;
 
     Mode m_mode = Mode::View;
-    int m_selectedIndex = -1;
+
+    ControlPoint* m_selectedPoint = nullptr;
 
     // Screen position of the last move event
     int m_lastX = 0;
@@ -96,10 +96,10 @@ private:
     // World-space anchor at the start of the current drag
     gp_Pnt m_dragAnchor;
 
-    // Accumulated total displacement for the drag in progress (committed on release)
-    Graphic3d_Vec3 m_accumulated { 0.f, 0.f, 0.f };
+    // // Accumulated total displacement for the drag in progress (committed on release)
+    // Graphic3d_Vec3 m_accumulated { 0.f, 0.f, 0.f };
 
-    // Command stacks for undo/redo
-    std::stack<std::unique_ptr<MoveCommand>> m_undoStack;
-    std::stack<std::unique_ptr<MoveCommand>> m_redoStack;
+    // // Command stacks for undo/redo
+    // std::stack<std::unique_ptr<MoveCommand>> m_undoStack;
+    // std::stack<std::unique_ptr<MoveCommand>> m_redoStack;
 };
