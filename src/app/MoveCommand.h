@@ -1,6 +1,6 @@
 #pragma once
 
-#include "model/HullModel.h"
+#include "core/HullModel.h"
 
 /**
  * @brief Represents a single point-move operation as a reversible command.
