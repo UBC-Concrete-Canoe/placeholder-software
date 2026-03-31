@@ -23,7 +23,7 @@ bool MoveTool::onMousePress(int x, int y)
     if (!m_context->MoreSelected())
     {
         m_context->ClearSelected(Standard_True);
-        m_selectedIndex = nullptr;
+        m_selectedPoint = nullptr;
         m_mode = Mode::View;
         return false;
     }
@@ -153,9 +153,10 @@ void MoveTool::onMouseRelease(int x, int y)
 Graphic3d_Vec3 MoveTool::projectOntoPlane(int x, int y, const gp_Pnt& anchor) const
 {
     // Shoot a ray from the camera through the screen pixel.
-    gp_Pnt rayOrigin;
-    gp_Dir rayDir;
-    m_view->ConvertWithProj(x, y, rayOrigin, rayDir);
+    Standard_Real xv, yv, zv, vx, vy, vz;
+    m_view->ConvertWithProj(x, y, xv, yv, zv, vx, vy, vz);
+    gp_Pnt rayOrigin(xv, yv, zv);
+    gp_Dir rayDir(vx, vy, vz);
 
     // Plane through `anchor`, normal = camera direction (faces the viewer).
     gp_Dir camDir = m_view->Camera()->Direction();
