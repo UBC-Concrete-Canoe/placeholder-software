@@ -19,7 +19,15 @@
 #include <Xw_Window.hxx>
 #endif
 
-OcctViewport::OcctViewport() {}
+namespace
+{
+std::shared_ptr<std::vector<Handle(VisualPoint)>> gSharedVisualPoints =
+	std::make_shared<std::vector<Handle(VisualPoint)>>();
+}
+
+OcctViewport::OcctViewport()
+  : myVisualPoints(gSharedVisualPoints)
+{}
 
 // Initialize 1: Create the main 3D render
 void
@@ -128,7 +136,7 @@ OcctViewport::displayControlPoint(const ControlPoint* point)
 	Handle(VisualPoint) visualPoint = new VisualPoint(point, myControlPointStyle);
 	myContext->Display(visualPoint, Standard_False);
 	myContext->Activate(visualPoint, 0, Standard_False);
-	myVisualPoints.push_back(visualPoint);
+	myVisualPoints->push_back(visualPoint);
 	myView->FitAll();
 	myContext->UpdateCurrentViewer();
 }
@@ -145,7 +153,7 @@ OcctViewport::removeAll()
 	if (!myContext.IsNull())
 	{
 		myContext->RemoveAll(true);
-		myVisualPoints.clear();
+		myVisualPoints->clear();
 	}
 }
 
@@ -215,13 +223,13 @@ OcctViewport::redraw()
 void
 OcctViewport::synchronizeVisualPoints()
 {
-	if (myContext.IsNull() || myVisualPoints.empty())
+	if (myContext.IsNull() || !myVisualPoints || myVisualPoints->empty())
 	{
 		return;
 	}
 
 	bool anyUpdated = false;
-	for (const Handle(VisualPoint) & point : myVisualPoints)
+	for (const Handle(VisualPoint) & point : *myVisualPoints)
 	{
 		if (point.IsNull())
 		{
@@ -253,7 +261,7 @@ OcctViewport::updateVisualPointSelectionStyles()
 {
 	bool anyUpdated = false;
 
-	for (const Handle(VisualPoint) & point : myVisualPoints)
+	for (const Handle(VisualPoint) & point : *myVisualPoints)
 	{
 		if (point.IsNull())
 		{

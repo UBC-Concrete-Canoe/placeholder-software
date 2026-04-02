@@ -6,6 +6,7 @@
 #include <TopoDS_Shape.hxx>
 #include <V3d_View.hxx>
 #include <V3d_Viewer.hxx>
+#include <memory>
 #include <vector>
 #include "core/ControlPointVisualStyle.h"
 
@@ -150,7 +151,7 @@ private:
 	Handle(V3d_View) myView;
 	//! Interactive scene context used for selection/display state.
 	Handle(AIS_InteractiveContext) myContext;
-	std::vector<Handle(VisualPoint)> myVisualPoints;
+	std::shared_ptr<std::vector<Handle(VisualPoint)>> myVisualPoints;
 	ControlPointVisualStyle myControlPointStyle;
 };
 

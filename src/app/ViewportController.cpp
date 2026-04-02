@@ -48,11 +48,6 @@ ViewportController::onMousePressEvent(QMouseEvent* e, qreal devicePixelRatio)
 		return;
 	}
 
-	if (!m_rotationEnabled && e->button() == Qt::LeftButton)
-	{
-		return;
-	}
-
 	// Map Qt button enum to OCCT enum
 	Aspect_VKeyMouse btn = Aspect_VKeyMouse_NONE;
 	if (e->button() == Qt::LeftButton)
@@ -74,6 +69,16 @@ ViewportController::onMousePressEvent(QMouseEvent* e, qreal devicePixelRatio)
 		m_leftButtonPressed = true;
 		m_leftButtonDragged = false;
 		m_leftPressPos = pos;
+
+		// Planar views can block orbit while still allowing click selection.
+		if (!m_rotationEnabled)
+		{
+			m_viewport->getContext()->MoveTo(
+				pos.x(), pos.y(), m_viewport->getView(), Standard_False
+			);
+			synchronizeAndFlush();
+			return;
+		}
 	}
 	PressMouseButton(pos, btn, Aspect_VKeyFlags_NONE, false);
 	synchronizeAndFlush();
@@ -87,8 +92,20 @@ ViewportController::onMouseReleaseEvent(QMouseEvent* e, qreal devicePixelRatio)
 		return;
 	}
 
+	Graphic3d_Vec2i pos = toNativePixels(e->position(), devicePixelRatio);
+
 	if (!m_rotationEnabled && e->button() == Qt::LeftButton)
 	{
+		if (m_leftButtonPressed && !m_leftButtonDragged)
+		{
+			m_viewport->getContext()->MoveTo(
+				pos.x(), pos.y(), m_viewport->getView(), Standard_False
+			);
+			m_viewport->getContext()->SelectDetected(AIS_SelectionScheme_Replace);
+		}
+		m_leftButtonPressed = false;
+		m_leftButtonDragged = false;
+		synchronizeAndFlush();
 		return;
 	}
 
@@ -106,8 +123,6 @@ ViewportController::onMouseReleaseEvent(QMouseEvent* e, qreal devicePixelRatio)
 	{
 		btn = Aspect_VKeyMouse_MiddleButton;
 	}
-
-	Graphic3d_Vec2i pos = toNativePixels(e->position(), devicePixelRatio);
 	ReleaseMouseButton(pos, btn, Aspect_VKeyFlags_NONE, false);
 
 	// Explicit click-selection for AIS objects (e.g., VisualPoint).
@@ -162,6 +177,11 @@ ViewportController::onMouseMoveEvent(QMouseEvent* e, qreal devicePixelRatio)
 	if (e->buttons() & Qt::MiddleButton)
 	{
 		buttons |= Aspect_VKeyMouse_MiddleButton;
+	}
+
+	if (!m_rotationEnabled)
+	{
+		buttons &= ~Aspect_VKeyMouse_LeftButton;
 	}
 
 	UpdateMousePosition(pos, buttons, Aspect_VKeyFlags_NONE, false);
