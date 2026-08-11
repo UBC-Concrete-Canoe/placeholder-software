@@ -3,6 +3,7 @@
 #include <AIS_InteractiveContext.hxx>
 #include <AIS_Shape.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
+#include <TopoDS_Edge.hxx>
 
 WireframeManager::WireframeManager(
 	const Handle(AIS_InteractiveContext)& context,
