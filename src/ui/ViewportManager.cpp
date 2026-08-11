@@ -1,4 +1,5 @@
 #include "ViewportManager.h"
+#include <vector>
 #include <gp_Pnt.hxx>
 #include "MainWindow.h"
 #include "OcctWidget.h"
@@ -93,20 +94,39 @@ ViewportManager::create_demo_hull_model()
 		return;
 	}
 
-	// Build a small arched lattice so both points and wireframe are easy to verify.
+	// Build a small arched starter cage using ordinary graph topology. The
+	// rectangular layout is only a generator; HullModel itself has no U/V grid.
 	const int uCount = 4;
 	const int vCount = 4;
 	const double spacing = 30.0;
-	demo_hull_model = std::make_shared<HullModel>(uCount, vCount);
+	demo_hull_model = std::make_shared<HullModel>();
 
-	int pointId = 0;
+	std::vector<std::vector<int>> pointIds(
+		uCount, std::vector<int>(vCount, -1)
+	);
 	for (int u = 0; u < uCount; ++u)
 	{
 		for (int v = 0; v < vCount; ++v)
 		{
 			const bool interior = (u > 0 && u < (uCount - 1) && v > 0 && v < (vCount - 1));
 			const double zHeight = interior ? 10.0 : 0.0;
-			demo_hull_model->updatePoint(pointId++, gp_Pnt(u * spacing, v * spacing, zHeight));
+			pointIds[u][v] =
+				demo_hull_model->addPoint(gp_Pnt(u * spacing, v * spacing, zHeight));
+		}
+	}
+
+	for (int u = 0; u < uCount - 1; ++u)
+	{
+		for (int v = 0; v < vCount - 1; ++v)
+		{
+			demo_hull_model->addFace(
+				{
+					pointIds[u][v],
+					pointIds[u + 1][v],
+					pointIds[u + 1][v + 1],
+					pointIds[u][v + 1]
+				}
+			);
 		}
 	}
 
@@ -117,6 +137,6 @@ ViewportManager::create_demo_hull_model()
 
 	demo_wireframe_manager =
 		std::make_unique<WireframeManager>(persp_viewport->getContext(), demo_hull_model);
-	demo_wireframe_manager->BuildLattice();
+	demo_wireframe_manager->build();
 	persp_viewport->fitAll();
 }

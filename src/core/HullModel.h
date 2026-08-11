@@ -1,107 +1,136 @@
-#ifndef HULLMODEL_H
-#define HULLMODEL_H
+#pragma once
 
-#include <cstddef>
-#include <unordered_map>
-#include <vector>
 #include "ControlPoint.h"
 
-#include <TColgp_Array2OfPnt.hxx>
+#include <cstddef>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
+struct ControlEdge
+{
+	int id;
+	int firstPointId;
+	int secondPointId;
+};
+
+struct ControlFace
+{
+	int id;
+	std::vector<int> pointIds;
+	std::vector<int> edgeIds;
+};
+
+struct EdgeSplitResult
+{
+	int pointId;
+	int firstEdgeId;
+	int secondEdgeId;
+	std::vector<int> replacementFaceIds;
+};
+
+class IHullModelObserver
+{
+public:
+	virtual ~IHullModelObserver() = default;
+	virtual void onPointAdded(int) {}
+	virtual void onControlPointMoved(int) {}
+	virtual void onEdgeAdded(int) {}
+	virtual void onEdgeRemoved(int) {}
+	virtual void onFaceAdded(int) {}
+	virtual void onFaceRemoved(int) {}
+	virtual void onModelReset() {}
+};
 
 /**
- * @brief Container managing a fixed 2D lattice of hull control points.
+ * @brief Editable, non-grid control mesh for a hull.
  *
- * This model assumes a FreeShip-like workflow where U/V dimensions are defined
- * before modeling starts. The topology is fixed after construction: control
- * points are modified in place rather than inserted or removed.
- *
- * Internally, points are stored in row-major order for cache-friendly access.
+ * Vertices, edges, and polygon faces have stable IDs. Adjacency maps make
+ * topology edits independent of any rectangular U/V layout.
  */
 class HullModel
 {
 public:
-	/**
-	 * @brief Construct a fixed-size hull control lattice.
-	 * @param uCount Number of control points in the U direction.
-	 * @param vCount Number of control points in the V direction.
-	 */
-	HullModel(int uCount, int vCount);
+	HullModel() = default;
+
+	int addPoint(const gp_Pnt& position, double weight = 1.0);
+	int addEdge(int firstPointId, int secondPointId);
+	int addFace(const std::vector<int>& pointIds);
+
+	void updatePoint(int pointId, const gp_Pnt& newPosition);
 
 	/**
-	 * @brief Get a mutable control point at (u, v).
-	 * @param u Zero-based U index.
-	 * @param v Zero-based V index.
-	 * @return Reference to the requested control point.
-	 * @throws std::out_of_range If (u, v) is outside the configured lattice.
+	 * @brief Replace an edge by two edges meeting at a new midpoint vertex.
+	 *
+	 * Every adjacent face loop is rewritten to include the new vertex.
 	 */
-	ControlPoint& getPoint(int u, int v);
+	EdgeSplitResult splitEdge(int edgeId);
 
 	/**
-	 * @brief Get a read-only control point at (u, v).
-	 * @param u Zero-based U index.
-	 * @param v Zero-based V index.
-	 * @return Const reference to the requested control point.
-	 * @throws std::out_of_range If (u, v) is outside the configured lattice.
+	 * @brief Insert an edge between two non-adjacent vertices of one face.
+	 *
+	 * The original face is replaced by the two resulting polygon faces.
+	 * @return IDs of the two replacement faces.
 	 */
-	const ControlPoint& getPoint(int u, int v) const;
+	std::pair<int, int> insertEdge(
+		int faceId,
+		int firstPointId,
+		int secondPointId
+	);
 
-	/**
-	 * @brief Update an existing control point by stable ID.
-	 * @param id Control point ID assigned during construction.
-	 * @param newPos New 3D position value.
-	 * @note This model does not add points at runtime; only existing points are updated.
-	 */
-	void updatePoint(int id, const gp_Pnt& newPos);
+	ControlPoint& point(int pointId);
+	const ControlPoint& point(int pointId) const;
+	const ControlEdge& edge(int edgeId) const;
+	const ControlFace& face(int faceId) const;
 
-	/**
-	 * @brief Export control points as OCCT poles.
-	 * @return 1-based TColgp_Array2OfPnt suitable for OCCT surface APIs.
-	 */
-	TColgp_Array2OfPnt toOcctPoles() const;
+	std::size_t pointCount() const { return m_pointOrder.size(); }
+	std::size_t edgeCount() const { return m_edgeOrder.size(); }
+	std::size_t faceCount() const { return m_faceOrder.size(); }
 
-	/** @brief Get the lattice size along U. */
-	int getUCount() const { return m_uCount; }
-	/** @brief Get the lattice size along V. */
-	int getVCount() const { return m_vCount; }
-
-	/**
-	 * @brief Get number of stored control points.
-	 * @return Count of points in the model.
-	 */
-	std::size_t pointCount() const;
-
-	/**
-	 * @brief Access a control point by index.
-	 * @param index Zero-based point index.
-	 * @return Non-owning pointer to point, or nullptr if out of range.
-	 */
 	ControlPoint* pointAt(std::size_t index);
+	const ControlPoint* pointAt(std::size_t index) const;
+	const ControlEdge* edgeAt(std::size_t index) const;
+	const ControlFace* faceAt(std::size_t index) const;
+
+	std::vector<int> incidentEdgeIds(int pointId) const;
+	std::vector<int> adjacentFaceIds(int edgeId) const;
 
 	/**
-	 * @brief Access a control point by index (const overload).
-	 * @param index Zero-based point index.
-	 * @return Non-owning const pointer to point, or nullptr if out of range.
+	 * @return Empty when all references, loops, and manifold constraints hold.
 	 */
-	const ControlPoint* pointAt(std::size_t index) const;
+	std::vector<std::string> validateTopology() const;
+
+	void addObserver(IHullModelObserver* observer);
+	void removeObserver(IHullModelObserver* observer);
 
 private:
-	/**
-	 * @brief Convert 2D lattice coordinates to row-major 1D index.
-	 * @param u Zero-based U index.
-	 * @param v Zero-based V index.
-	 * @return Flat vector index for m_points.
-	 * @throws std::out_of_range If (u, v) is outside the configured lattice.
-	 */
-	size_t getIndex(int u, int v) const;
+	int findEdgeId(int firstPointId, int secondPointId) const;
+	void removeEdge(int edgeId);
+	void removeFace(int faceId);
+	bool faceLoopExists(const std::vector<int>& pointIds) const;
 
-	int m_uCount;
-	int m_vCount;
+	static std::vector<int> pathAlongFace(
+		const std::vector<int>& loop,
+		std::size_t start,
+		std::size_t finish
+	);
 
-	//! Row-major data layer: U rows by V columns.
-	std::vector<ControlPoint> m_points;
+	int m_nextPointId = 0;
+	int m_nextEdgeId = 0;
+	int m_nextFaceId = 0;
 
-	//! Maps stable point IDs to row-major vector indices.
-	std::unordered_map<int, size_t> m_idToIndexMap;
+	// unordered_map references remain valid across rehash, keeping VisualPoint
+	// bindings stable while new control points are inserted.
+	std::unordered_map<int, ControlPoint> m_points;
+	std::unordered_map<int, ControlEdge> m_edges;
+	std::unordered_map<int, ControlFace> m_faces;
+	std::vector<int> m_pointOrder;
+	std::vector<int> m_edgeOrder;
+	std::vector<int> m_faceOrder;
+
+	std::unordered_map<int, std::unordered_set<int>> m_pointToEdges;
+	std::unordered_map<int, std::unordered_set<int>> m_edgeToFaces;
+	std::vector<IHullModelObserver*> m_observers;
 };
-
-#endif // HULLMODEL_H

@@ -46,6 +46,20 @@ target_sources(${PROJECT_NAME} PRIVATE
 
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 
+include(CTest)
+if(BUILD_TESTING)
+    add_executable(hull_model_tests
+        tests/HullModelTests.cpp
+        src/core/HullModel.cpp
+    )
+    target_include_directories(hull_model_tests PRIVATE
+        src
+        ${OpenCASCADE_INCLUDE_DIR}
+    )
+    target_link_libraries(hull_model_tests PRIVATE TKernel TKMath)
+    add_test(NAME hull_model_topology COMMAND hull_model_tests)
+endif()
+
 # 5. Platform Specifics
 if(APPLE)
     # Objective-C++ support for Cocoa window handles
