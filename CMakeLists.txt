@@ -12,14 +12,6 @@ set(CMAKE_AUTORCC ON)
 # 2. Find Packages
 find_package(Qt6 REQUIRED COMPONENTS Widgets OpenGLWidgets)
 find_package(OpenCASCADE REQUIRED)
-find_package(VTK REQUIRED COMPONENTS
-    CommonCore
-    CommonDataModel
-    FiltersSources
-    RenderingCore
-    RenderingOpenGL2
-    GUISupportQt
-)
 
 # 3. Define the Executable (Qt6 Style)
 # MANUAL_FINALIZATION is recommended for complex projects to handle deployment/plugins
@@ -34,14 +26,31 @@ target_sources(${PROJECT_NAME} PRIVATE
     src/app/ViewportController.cpp
     src/ui/MainWindow.cpp 
     src/ui/OcctWidget.cpp 
+    src/ui/ViewportManager.cpp
     src/core/HullModel.cpp
     src/render/OcctViewport.cpp
+    src/render/VisualPoint.cpp
+    src/render/WireframeManager.cpp
     
     src/ui/MainWindow.ui
     src/ui/images.qrc
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE src)
+
+include(CTest)
+if(BUILD_TESTING)
+    add_executable(hull_model_tests
+        tests/HullModelTests.cpp
+        src/core/HullModel.cpp
+    )
+    target_include_directories(hull_model_tests PRIVATE
+        src
+        ${OpenCASCADE_INCLUDE_DIR}
+    )
+    target_link_libraries(hull_model_tests PRIVATE TKernel TKMath)
+    add_test(NAME hull_model_topology COMMAND hull_model_tests)
+endif()
 
 # 5. Platform Specifics
 if(APPLE)
@@ -75,32 +84,11 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     # OCCT Libraries
     TKernel TKMath TKG2d TKG3d TKGeomBase
     TKBRep TKTopAlgo TKPrim TKService TKV3d TKOpenGl
-    
-    # VTK Libraries (explicit list avoids over-linking/auto-init issues)
-    VTK::CommonCore
-    VTK::CommonDataModel
-    VTK::FiltersSources
-    VTK::RenderingCore
-    VTK::RenderingOpenGL2
-    VTK::GUISupportQt
 )
 
 # 7. Include Paths
 target_include_directories(${PROJECT_NAME} PRIVATE 
     ${OpenCASCADE_INCLUDE_DIR}
-    ${VTK_INCLUDE_DIRS}
-)
-
-# 8. VTK Initialization
-vtk_module_autoinit(
-    TARGETS ${PROJECT_NAME}
-    MODULES
-        VTK::CommonCore
-        VTK::CommonDataModel
-        VTK::FiltersSources
-        VTK::RenderingCore
-        VTK::RenderingOpenGL2
-        VTK::GUISupportQt
 )
 
 # 9. Windows Deployment (Post-Build)

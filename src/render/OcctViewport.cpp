@@ -1,4 +1,7 @@
 #include "OcctViewport.h"
+#include "core/ControlPoint.h"
+#include "render/OcctStyleMapper.h"
+#include "render/VisualPoint.h"
 
 // OCCT Core
 #include <AIS_Shape.hxx>
@@ -16,8 +19,17 @@
 #include <Xw_Window.hxx>
 #endif
 
-OcctViewport::OcctViewport() {}
+namespace
+{
+std::shared_ptr<std::vector<Handle(VisualPoint)>> gSharedVisualPoints =
+	std::make_shared<std::vector<Handle(VisualPoint)>>();
+}
 
+OcctViewport::OcctViewport()
+  : myVisualPoints(gSharedVisualPoints)
+{}
+
+// Initialize 1: Create the main 3D render
 void
 OcctViewport::initialize(WId windowHandle)
 {
@@ -40,21 +52,61 @@ OcctViewport::initialize(WId windowHandle)
 	// Create the interactive context for rendering objects
 	myContext = new AIS_InteractiveContext(myViewer);
 	myContext->DefaultDrawer()->SetFaceBoundaryDraw(true);
+	myContext->SetPixelTolerance(8);
 
-	// Create the view
+	// Keep backend highlight in sync with renderer-agnostic style intent.
+	const Quantity_Color hoverColor = OcctStyleMapper::toOcctColor(myControlPointStyle.hoverColor);
+	const Quantity_Color selectedColor =
+		OcctStyleMapper::toOcctColor(myControlPointStyle.selectedColor);
+	Handle(Prs3d_PointAspect) hoverPointAspect = OcctStyleMapper::makePointAspect(
+		myControlPointStyle.hoverColor, myControlPointStyle.selectedMarkerScale
+	);
+	Handle(Prs3d_PointAspect) selectedPointAspect = OcctStyleMapper::makePointAspect(
+		myControlPointStyle.selectedColor, myControlPointStyle.selectedMarkerScale
+	);
+	const Handle(Prs3d_Drawer) & dynamicHighlight =
+		myContext->HighlightStyle(Prs3d_TypeOfHighlight_Dynamic);
+	dynamicHighlight->SetColor(hoverColor);
+	dynamicHighlight->SetPointAspect(hoverPointAspect);
+
+	const Handle(Prs3d_Drawer) & selectedHighlight =
+		myContext->HighlightStyle(Prs3d_TypeOfHighlight_Selected);
+	selectedHighlight->SetColor(selectedColor);
+	selectedHighlight->SetPointAspect(selectedPointAspect);
+
 	myView = myViewer->CreateView();
+
+	setupView(windowHandle); // Embed into Qt's window handle
+}
+
+// Initialize 2: Create the planar renders
+void
+OcctViewport::initialize(WId windowHandle, Handle(AIS_InteractiveContext) sharedContext)
+{
+	myContext = sharedContext; // Instead of creating a new context, it uses the shared one which
+							   // allows all views to sync up
+	myViewer = myContext->CurrentViewer();
+	myView = myViewer->CreateView();
+
+	setupView(windowHandle); // Embed into Qt's window handle
+}
+
+// Embed into Qt's window handle, placed here to reduce clutter
+void
+OcctViewport::setupView(WId windowHandle)
+{
 	myView->SetImmediateUpdate(false);
 	myView->SetShadingModel(V3d_PHONG);
 	myView->SetBackgroundColor(Quantity_NOC_BLACK);
 
-	// Embed the view into the Qt widget's native window handle
+// Embed the view into the Qt widget's native window handle
 #ifdef _WIN32
 	Handle(WNT_Window) wind = new WNT_Window((Aspect_Handle)windowHandle);
-#elif defined(Q_OS_LINUX)
-	Handle(Xw_Window) wind = new Xw_Window(displayConnection, (Aspect_Drawable)windowHandle);
 #elif defined(Q_OS_MAC)
 	Handle(Cocoa_Window) wind = new Cocoa_Window((NSView*)windowHandle);
 #else
+	// Display connection can be found from the graphic driver
+	Handle(Aspect_DisplayConnection) displayConnection = myViewer->Driver()->GetDisplayConnection();
 	Handle(Xw_Window) wind = new Xw_Window(displayConnection, (Aspect_Drawable)windowHandle);
 #endif
 
@@ -74,11 +126,34 @@ OcctViewport::displayShape(const TopoDS_Shape& shape)
 }
 
 void
+OcctViewport::displayControlPoint(const ControlPoint* point)
+{
+	if (myContext.IsNull() || point == nullptr)
+	{
+		return;
+	}
+
+	Handle(VisualPoint) visualPoint = new VisualPoint(point, myControlPointStyle);
+	myContext->Display(visualPoint, Standard_False);
+	myContext->Activate(visualPoint, 0, Standard_False);
+	myVisualPoints->push_back(visualPoint);
+	myView->FitAll();
+	myContext->UpdateCurrentViewer();
+}
+
+void
+OcctViewport::setControlPointStyle(const ControlPointVisualStyle& style)
+{
+	myControlPointStyle = style;
+}
+
+void
 OcctViewport::removeAll()
 {
 	if (!myContext.IsNull())
 	{
 		myContext->RemoveAll(true);
+		myVisualPoints->clear();
 	}
 }
 
@@ -143,4 +218,63 @@ OcctViewport::redraw()
 	{
 		myView->Redraw();
 	}
+}
+
+void
+OcctViewport::synchronizeVisualPoints()
+{
+	if (myContext.IsNull() || !myVisualPoints || myVisualPoints->empty())
+	{
+		return;
+	}
+
+	bool anyUpdated = false;
+	for (const Handle(VisualPoint) & point : *myVisualPoints)
+	{
+		if (point.IsNull())
+		{
+			continue;
+		}
+
+		const gp_Pnt before = point->point();
+		point->synchronize();
+		if (before.Distance(point->point()) > 0.0)
+		{
+			myContext->Redisplay(point, Standard_False);
+			anyUpdated = true;
+		}
+	}
+
+	if (updateVisualPointSelectionStyles())
+	{
+		anyUpdated = true;
+	}
+
+	if (anyUpdated)
+	{
+		myContext->UpdateCurrentViewer();
+	}
+}
+
+bool
+OcctViewport::updateVisualPointSelectionStyles()
+{
+	bool anyUpdated = false;
+
+	for (const Handle(VisualPoint) & point : *myVisualPoints)
+	{
+		if (point.IsNull())
+		{
+			continue;
+		}
+
+		const bool isSelected = myContext->IsSelected(point);
+		if (point->setSelectedStyle(isSelected))
+		{
+			myContext->Redisplay(point, Standard_False);
+			anyUpdated = true;
+		}
+	}
+
+	return anyUpdated;
 }

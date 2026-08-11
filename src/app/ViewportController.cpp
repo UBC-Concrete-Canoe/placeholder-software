@@ -1,8 +1,34 @@
 #include "ViewportController.h"
 
+#include <cmath>
+
+namespace
+{
+Graphic3d_Vec2i
+toNativePixels(const QPointF& pos, qreal devicePixelRatio)
+{
+	const qreal dpr = devicePixelRatio > 0.0 ? devicePixelRatio : 1.0;
+	return Graphic3d_Vec2i(
+		static_cast<int>(std::lround(pos.x() * dpr)), static_cast<int>(std::lround(pos.y() * dpr))
+	);
+}
+} // namespace
+
 ViewportController::ViewportController(OcctViewport* viewport)
   : m_viewport(viewport)
 {
+}
+
+void
+ViewportController::synchronizeAndFlush()
+{
+	if (!m_viewport || !m_viewport->getView())
+	{
+		return;
+	}
+
+	m_viewport->synchronizeVisualPoints();
+	FlushViewEvents(m_viewport->getContext(), m_viewport->getView(), true);
 }
 
 void
@@ -15,7 +41,7 @@ ViewportController::onResize()
 }
 
 void
-ViewportController::onMousePressEvent(QMouseEvent* e)
+ViewportController::onMousePressEvent(QMouseEvent* e, qreal devicePixelRatio)
 {
 	if (!m_viewport || !m_viewport->getView())
 	{
@@ -37,16 +63,49 @@ ViewportController::onMousePressEvent(QMouseEvent* e)
 		btn = Aspect_VKeyMouse_MiddleButton;
 	}
 
-	Graphic3d_Vec2i pos(e->position().x(), e->position().y());
+	Graphic3d_Vec2i pos = toNativePixels(e->position(), devicePixelRatio);
+	if (e->button() == Qt::LeftButton)
+	{
+		m_leftButtonPressed = true;
+		m_leftButtonDragged = false;
+		m_leftPressPos = pos;
+
+		// Planar views can block orbit while still allowing click selection.
+		if (!m_rotationEnabled)
+		{
+			m_viewport->getContext()->MoveTo(
+				pos.x(), pos.y(), m_viewport->getView(), Standard_False
+			);
+			synchronizeAndFlush();
+			return;
+		}
+	}
 	PressMouseButton(pos, btn, Aspect_VKeyFlags_NONE, false);
-	FlushViewEvents(m_viewport->getContext(), m_viewport->getView(), true);
+	synchronizeAndFlush();
 }
 
 void
-ViewportController::onMouseReleaseEvent(QMouseEvent* e)
+ViewportController::onMouseReleaseEvent(QMouseEvent* e, qreal devicePixelRatio)
 {
 	if (!m_viewport || !m_viewport->getView())
 	{
+		return;
+	}
+
+	Graphic3d_Vec2i pos = toNativePixels(e->position(), devicePixelRatio);
+
+	if (!m_rotationEnabled && e->button() == Qt::LeftButton)
+	{
+		if (m_leftButtonPressed && !m_leftButtonDragged)
+		{
+			m_viewport->getContext()->MoveTo(
+				pos.x(), pos.y(), m_viewport->getView(), Standard_False
+			);
+			m_viewport->getContext()->SelectDetected(AIS_SelectionScheme_Replace);
+		}
+		m_leftButtonPressed = false;
+		m_leftButtonDragged = false;
+		synchronizeAndFlush();
 		return;
 	}
 
@@ -64,21 +123,46 @@ ViewportController::onMouseReleaseEvent(QMouseEvent* e)
 	{
 		btn = Aspect_VKeyMouse_MiddleButton;
 	}
-
-	Graphic3d_Vec2i pos(e->position().x(), e->position().y());
 	ReleaseMouseButton(pos, btn, Aspect_VKeyFlags_NONE, false);
-	FlushViewEvents(m_viewport->getContext(), m_viewport->getView(), true);
+
+	// Explicit click-selection for AIS objects (e.g., VisualPoint).
+	if (e->button() == Qt::LeftButton)
+	{
+		if (m_leftButtonPressed && !m_leftButtonDragged)
+		{
+			m_viewport->getContext()->MoveTo(
+				pos.x(), pos.y(), m_viewport->getView(), Standard_False
+			);
+			m_viewport->getContext()->SelectDetected(AIS_SelectionScheme_Replace);
+		}
+		m_leftButtonPressed = false;
+		m_leftButtonDragged = false;
+	}
+
+	synchronizeAndFlush();
 }
 
 void
-ViewportController::onMouseMoveEvent(QMouseEvent* e)
+ViewportController::onMouseMoveEvent(QMouseEvent* e, qreal devicePixelRatio)
 {
 	if (!m_viewport || !m_viewport->getView())
 	{
 		return;
 	}
 
-	Graphic3d_Vec2i pos(e->position().x(), e->position().y());
+	Graphic3d_Vec2i pos = toNativePixels(e->position(), devicePixelRatio);
+	m_viewport->getContext()->MoveTo(pos.x(), pos.y(), m_viewport->getView(), Standard_False);
+
+	if (m_leftButtonPressed)
+	{
+		const int dx = pos.x() - m_leftPressPos.x();
+		const int dy = pos.y() - m_leftPressPos.y();
+		if (dx * dx + dy * dy > 9)
+		{
+			m_leftButtonDragged = true;
+		}
+	}
+
 	// Aggregate all pressed buttons during motion
 	Aspect_VKeyMouse buttons = Aspect_VKeyMouse_NONE;
 
@@ -95,24 +179,29 @@ ViewportController::onMouseMoveEvent(QMouseEvent* e)
 		buttons |= Aspect_VKeyMouse_MiddleButton;
 	}
 
+	if (!m_rotationEnabled)
+	{
+		buttons &= ~Aspect_VKeyMouse_LeftButton;
+	}
+
 	UpdateMousePosition(pos, buttons, Aspect_VKeyFlags_NONE, false);
-	FlushViewEvents(m_viewport->getContext(), m_viewport->getView(), true);
+	synchronizeAndFlush();
 }
 
 void
-ViewportController::onWheelEvent(QWheelEvent* e)
+ViewportController::onWheelEvent(QWheelEvent* e, qreal devicePixelRatio)
 {
-	if (!m_viewport->getView())
+	if (!m_viewport || !m_viewport->getView())
 	{
 		return;
 	}
 
-	Graphic3d_Vec2i pos(e->position().x(), e->position().y());
+	Graphic3d_Vec2i pos = toNativePixels(e->position(), devicePixelRatio);
 	// Convert wheel delta to normalized zoom speed (angleDelta ~ 120 per tick)
 	double delta = e->angleDelta().y() / 8.0 / 15.0;
 
 	UpdateMouseScroll(Aspect_ScrollDelta(pos, delta, Aspect_VKeyFlags_NONE));
-	FlushViewEvents(m_viewport->getContext(), m_viewport->getView(), true);
+	synchronizeAndFlush();
 }
 
 void
@@ -155,4 +244,12 @@ ViewportController::onKeyEvent(QKeyEvent* e)
 			m_viewport->setViewPreset(V3d_TypeOfOrientation_Zup_Right);
 			break;
 	}
+
+	synchronizeAndFlush();
+}
+
+void
+ViewportController::setRotationEnabled(bool enabled)
+{
+	m_rotationEnabled = enabled;
 }

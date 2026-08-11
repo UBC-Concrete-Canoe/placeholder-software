@@ -1,6 +1,9 @@
 #pragma once
-#include "render/OcctViewport.h"
-#include "ui/OcctWidget.h"
+
+#include <memory>
+
+class MainWindow;
+class ViewportManager;
 
 /**
  * @brief Application entry point and initialization.
@@ -25,10 +28,6 @@ public:
 	void run();
 
 private:
-	/**
-	 * @brief Initialize OCCT rendering in the given widget.
-	 * @param widget The OcctWidget receiving the viewport
-	 * @param viewport The OcctViewport to initialize
-	 */
-	void initializeGraphics(OcctWidget* widget, OcctViewport* viewport);
+	std::unique_ptr<MainWindow> m_window;
+	std::unique_ptr<ViewportManager> m_viewManager;
 };

@@ -34,7 +34,7 @@ OcctWidget::mousePressEvent(QMouseEvent* e)
 {
 	if (m_controller)
 	{
-		m_controller->onMousePressEvent(e);
+		m_controller->onMousePressEvent(e, devicePixelRatioF());
 		update();
 	}
 }
@@ -44,7 +44,7 @@ OcctWidget::mouseMoveEvent(QMouseEvent* e)
 {
 	if (m_controller)
 	{
-		m_controller->onMouseMoveEvent(e);
+		m_controller->onMouseMoveEvent(e, devicePixelRatioF());
 		update();
 	}
 }
@@ -54,7 +54,7 @@ OcctWidget::mouseReleaseEvent(QMouseEvent* e)
 {
 	if (m_controller)
 	{
-		m_controller->onMouseReleaseEvent(e);
+		m_controller->onMouseReleaseEvent(e, devicePixelRatioF());
 		update();
 	}
 }
@@ -64,7 +64,7 @@ OcctWidget::wheelEvent(QWheelEvent* e)
 {
 	if (m_controller)
 	{
-		m_controller->onWheelEvent(e);
+		m_controller->onWheelEvent(e, devicePixelRatioF());
 		update();
 	}
 }

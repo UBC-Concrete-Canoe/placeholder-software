@@ -6,51 +6,22 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>608</width>
+    <height>580</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Naval Architecture and Boat Innovation Lab</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="layoutDirection">
     <enum>Qt::LayoutDirection::RightToLeft</enum>
    </property>
-   <layout class="QGridLayout" name="gridLayout_2" rowstretch="0,0,0,0" columnstretch="1,1">
-    <item row="3" column="1">
-     <widget class="QFrame" name="frame_2">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::Shape::StyledPanel</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Shadow::Raised</enum>
-      </property>
-      <widget class="QLabel" name="label_3">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>49</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Plan view</string>
-       </property>
-      </widget>
-     </widget>
-    </item>
+   <layout class="QGridLayout" name="gridLayout_2" rowstretch="0,1,0,1" columnstretch="1,1">
     <item row="3" column="0">
      <widget class="QFrame" name="frame_3">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -61,25 +32,34 @@
       <property name="frameShadow">
        <enum>QFrame::Shadow::Raised</enum>
       </property>
-      <widget class="QLabel" name="label_4">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>81</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Bodyplan view</string>
-       </property>
-      </widget>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Bodyplan view</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="OcctWidget" name="bodyplanWidget" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
     <item row="1" column="0">
      <widget class="QFrame" name="frame">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -90,25 +70,34 @@
       <property name="frameShadow">
        <enum>QFrame::Shadow::Raised</enum>
       </property>
-      <widget class="QLabel" name="label_2">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>61</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Profile view</string>
-       </property>
-      </widget>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Profile view</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="OcctWidget" name="profileWidget" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
     <item row="1" column="1">
      <widget class="QFrame" name="frame_4">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -119,29 +108,66 @@
       <property name="frameShadow">
        <enum>QFrame::Shadow::Raised</enum>
       </property>
-      <widget class="QLabel" name="label">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>91</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Perspective view</string>
-       </property>
-      </widget>
-      <widget class="OcctWidget" name="widget" native="true">
-       <property name="geometry">
-        <rect>
-         <x>110</x>
-         <y>80</y>
-         <width>120</width>
-         <height>80</height>
-        </rect>
-       </property>
-      </widget>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Perspective view</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="OcctWidget" name="renderWidget" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QFrame" name="frame_2">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Shape::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Shadow::Raised</enum>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Plan view</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="OcctWidget" name="planWidget" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
    </layout>
@@ -151,45 +177,10 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
-     <height>21</height>
+     <width>608</width>
+     <height>33</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
-    <property name="title">
-     <string>File</string>
-    </property>
-    <widget class="QMenu" name="menuExport">
-     <property name="title">
-      <string>Export</string>
-     </property>
-     <addaction name="actionSTL"/>
-     <addaction name="actionCAD_NURBS"/>
-     <addaction name="action_fbm"/>
-     <addaction name="action_na_NABIL_Project"/>
-    </widget>
-    <widget class="QMenu" name="menuImport">
-     <property name="title">
-      <string>Import</string>
-     </property>
-     <addaction name="actionSTL_2"/>
-     <addaction name="actionCAD_NURBS_2"/>
-     <addaction name="action_fbm_2"/>
-     <addaction name="action_na"/>
-    </widget>
-    <addaction name="actionNew"/>
-    <addaction name="actionOpen"/>
-    <addaction name="actionSave"/>
-    <addaction name="actionSave_as"/>
-    <addaction name="menuImport"/>
-    <addaction name="menuExport"/>
-    <addaction name="actionClose_current_project"/>
-    <addaction name="actionClose_all"/>
-    <addaction name="actionQuit"/>
-    <addaction name="separator"/>
-    <addaction name="actionSettings"/>
-    <addaction name="actionProject_settings"/>
-   </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
      <string>Edit</string>
@@ -265,7 +256,6 @@
     <addaction name="actionFAQ"/>
     <addaction name="actionContact"/>
    </widget>
-   <addaction name="menusiufuhhspou"/>
    <addaction name="menuEdit"/>
    <addaction name="menuDrawing_tools"/>
    <addaction name="menuCalculations"/>
@@ -517,7 +507,7 @@
   </action>
   <action name="actionWireframe">
    <property name="icon">
-    <iconset resource="images.qrc">
+    <iconset>
      <normaloff>:/wiremesh.png</normaloff>:/wiremesh.png</iconset>
    </property>
    <property name="text">
@@ -532,7 +522,7 @@
   </action>
   <action name="actionSolid_surface">
    <property name="icon">
-    <iconset resource="images.qrc">
+    <iconset>
      <normaloff>:/square.png</normaloff>:/square.png</iconset>
    </property>
    <property name="text">
@@ -547,7 +537,7 @@
   </action>
   <action name="actionstatus">
    <property name="icon">
-    <iconset resource="images.qrc">
+    <iconset>
      <normaloff>:/redcircle.png</normaloff>:/redcircle.png</iconset>
    </property>
    <property name="text">
@@ -582,7 +572,7 @@
   </action>
   <action name="actionLayers">
    <property name="icon">
-    <iconset resource="images.qrc">
+    <iconset>
      <normaloff>:/layers.png</normaloff>:/layers.png</iconset>
    </property>
    <property name="text">
@@ -600,7 +590,7 @@
   <customwidget>
    <class>OcctWidget</class>
    <extends>QWidget</extends>
-   <header>ui/OcctWidget.h</header>
+   <header location="global">ui/OcctWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

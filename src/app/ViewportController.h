@@ -27,25 +27,25 @@ public:
 	 * @brief Handle mouse button press.
 	 * Initiates interaction (rotation, zoom, or pan) based on button.
 	 */
-	void onMousePressEvent(QMouseEvent* e);
+	void onMousePressEvent(QMouseEvent* e, qreal devicePixelRatio);
 
 	/**
 	 * @brief Handle mouse button release.
 	 * Ends the current interaction.
 	 */
-	void onMouseReleaseEvent(QMouseEvent* e);
+	void onMouseReleaseEvent(QMouseEvent* e, qreal devicePixelRatio);
 
 	/**
 	 * @brief Handle mouse movement.
 	 * Updates view transformation while button is held.
 	 */
-	void onMouseMoveEvent(QMouseEvent* e);
+	void onMouseMoveEvent(QMouseEvent* e, qreal devicePixelRatio);
 
 	/**
 	 * @brief Handle mouse wheel scroll.
 	 * Zooms the view in/out.
 	 */
-	void onWheelEvent(QWheelEvent* e);
+	void onWheelEvent(QWheelEvent* e, qreal devicePixelRatio);
 
 	/**
 	 * @brief Handle keyboard input.
@@ -59,6 +59,17 @@ public:
 	 */
 	void onResize();
 
+	/**
+	 * @brief Enable or disable mouse-driven orbit rotation.
+	 * @param enabled False to block left-button orbit while keeping pan/zoom active.
+	 */
+	void setRotationEnabled(bool enabled);
+
 private:
+	void synchronizeAndFlush();
+	bool m_leftButtonPressed = false;
+	bool m_leftButtonDragged = false;
+	Graphic3d_Vec2i m_leftPressPos = Graphic3d_Vec2i(0, 0);
 	OcctViewport* m_viewport;
+	bool m_rotationEnabled = true;
 };
